@@ -7,9 +7,15 @@ define(['backbone'],
         /* Location Day Quantity. */
         Models.LocationDayQuantity = Backbone.Model.extend({});
 
+        /* Collection of Location Day Quantity objects. */
+        Models.LocationDayQuantities = Backbone.Collection.extend({
+            model: Models.LocationDayQuantity
+        });
+
         /* Location Model. */
         Models.Location = Backbone.Model.extend({
             urlRoot: "/api/v1/locations",
+            /* Overloaded Backbone.Model.set function */
             castSet: function (key, val, options) {
 
                 if (key === "capacity") {
@@ -18,7 +24,7 @@ define(['backbone'],
                     val = parseInt(val);
                 }
 
-                Backbone.Model.prototype.set.call(this, key, val, options)
+                Backbone.Model.prototype.set.call(this, key, val, options);
             },
             validate: function (attrs, options) {
                 for (var key in attrs) {
@@ -31,9 +37,25 @@ define(['backbone'],
                         return "Location quantity must be a number";
                     }
                 }
+            },
+            constructor: function (attrs, options) {
+
+                if (attrs.hasOwnProperty("day_quantities")) {
+                    for (var i in attrs["day_quantities"]) {
+                        if (!(attrs["day_quantities"][i] instanceof Backbone.Model)) {
+                            attrs["day_quantities"][i] = new Models.LocationDayQuantity(attrs["day_quantities"][i]);
+                        }
+                    }
+                    attrs["day_quantities"] = new Models.LocationDayQuantities(attrs["day_quantities"]);
+                } else {
+                    attrs["day_quantities"] = new Models.LocationDayQuantities();
+                }
+
+                Backbone.Model.call(this, attrs, options);
             }
         });
 
+        /* Collection of Location objects. */
         Models.Locations = Backbone.Collection.extend({
             url: "/api/v1/locations",
             model: Models.Location

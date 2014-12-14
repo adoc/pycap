@@ -89,9 +89,11 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                     value = field.val(),
                     cell = field.parent(),
                     row = cell.parent(),
-                    field_name = cell.attr("data-field"),
+                    field_name = cell.attr("data-date"),
                     location_id = row.attr("data-location-id"),
                     location = this.locationsModel.get(location_id)
+
+                console.log(field_name);
 
                 location.castSet(field_name, value, {validate:true});
 

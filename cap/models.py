@@ -71,7 +71,6 @@ def init_models(settings):
         amount = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
         def __json__(self, request):
-            
             return {
                 'date': self.date.strftime(date_format),
                 'amount': self.amount

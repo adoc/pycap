@@ -16,6 +16,12 @@ require.config({
     }
 });
 
+window.assert = function (condition, message) {
+    if (!condition) {
+        throw message || "AssertionError";
+    }
+}
+
 // src: http://stackoverflow.com/a/646643
 // Add `startsWith` and `endsWith` to the String prototype.
 if (typeof String.prototype.startsWith != 'function') {
