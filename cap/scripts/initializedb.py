@@ -13,7 +13,7 @@ from pyramid.scripts.common import parse_vars
 
 from ..models import (
     DBSession,
-    MyModel,
+    Location,
     Base,
     )
 
@@ -35,6 +35,19 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+
     with transaction.manager:
-        model = MyModel(name='one', value=1)
-        DBSession.add(model)
+        DBSession.add(Location(display_name='Alhambra'))
+        DBSession.add(Location(display_name='Montebello'))
+        DBSession.add(Location(display_name='La Puente'))
+        DBSession.add(Location(display_name='Pasadena'))
+        DBSession.add(Location(display_name='Duarte'))
+        DBSession.add(Location(display_name='Perris'))
+        DBSession.add(Location(display_name='Loma Linda'))
+        DBSession.add(Location(display_name='Corona'))
+        DBSession.add(Location(display_name='Riverside'))
+        DBSession.add(Location(display_name='Fontana'))
+        DBSession.add(Location(display_name='West Covina'))
+        DBSession.add(Location(display_name='Rosemead'))
+        DBSession.add(Location(display_name='Glendora'))
+        DBSession.add(Location(display_name='Ontario'))
