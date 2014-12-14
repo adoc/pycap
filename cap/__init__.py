@@ -1,19 +1,18 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 
-from .models import (
-    DBSession,
-    Base,
-    )
+import cap.models
 
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
+    cap.models.DBSession.configure(bind=engine)
+    cap.models.Base.metadata.bind = engine
+    cap.models.init_models(settings)
     config = Configurator(settings=settings)
+
     #config.include('pyramid_chameleon')
     config.add_static_view('static', 'static',
                             cache_max_age=int(settings['cache_max_age']))

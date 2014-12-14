@@ -29,7 +29,8 @@ def init_models(settings):
         http://docs.sqlalchemy.org/en/rel_0_9/core/types.html#sqlalchemy.types.TypeDecorator
         """
         impl = sqlalchemy.types.Integer
-        epoch = datetime.datetime(1970, 1, 1).replace(tzinfo=pytz.timezone(settings['local_timezone']))
+        epoch = datetime.datetime(1970, 1, 1).replace(
+                            tzinfo=pytz.timezone(settings['local_timezone']))
 
         def process_bind_param(self, value, dialect):
             return (value - self.epoch).days
@@ -54,9 +55,10 @@ def init_models(settings):
                 'capacity': self.capacity,
                 'day_quantities': (
                     self.dyn_day_quantities.filter(
-                                    LocationDayQuantity.date >=
-                                        cap.util.get_localized_datetime(request))
-                                    .all())
+                                LocationDayQuantity.date >=
+                                    cap.util.get_localized_datetime(request))
+                                .order_by(LocationDayQuantity.date.asc())
+                                .all())
             }
 
     class LocationDayQuantity(Base):

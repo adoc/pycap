@@ -4,13 +4,17 @@ define(['backbone'],
     function(Backbone) {
         var Models = {};
 
+        /* Location Day Quantity. */
+        Models.LocationDayQuantity = Backbone.Model.extend({});
+
+        /* Location Model. */
         Models.Location = Backbone.Model.extend({
             urlRoot: "/api/v1/locations",
             castSet: function (key, val, options) {
 
                 if (key === "capacity") {
                     val = parseInt(val);
-                } else if (key.startsWith("day_quantity")===true) {
+                } else if (key.startsWith("day_quantity") === true) {
                     val = parseInt(val);
                 }
 

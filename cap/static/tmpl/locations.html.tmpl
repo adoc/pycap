@@ -70,8 +70,10 @@
             <td class="field field_display_name" data-field="display_name"><%-location.get("display_name")%></td>
           <% daysModel.each(function(day, i) {
             if (day.get("day_num") != 0) {
-              var field_name = "day_quantity_"+day.get("date"),
-                  quant_rec = location.get("day_quantities")[i];
+              var date=day.get("date"),
+                  field_name = "day_quantity_"+date,
+                  quant_rec = _.find(location.get("day_quantities"),
+                                      function(day_quantity) { return day_quantity.date == date });
 
               %>
             <td class="field field_day_quantity" data-field="<%-field_name%>"><%-quant_rec && quant_rec.amount || 0%></td>

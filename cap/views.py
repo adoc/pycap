@@ -40,9 +40,8 @@ def api_locations_post(request, location=cap.models.Location()):
             location.capacity = params['capacity']
 
         elif key.startswith("day_quantity"):
-            #date = cap.util.get_utc_datetime(request,
-            #        datetime.datetime.strptime(key.split('_')[-1], date_format))
-            date = datetime.datetime.strptime(key.split('_')[-1], date_format).replace(tzinfo=pytz.utc)
+            date = (datetime.datetime.strptime(key.split('_')[-1], date_format)
+                        .replace(tzinfo=pytz.timezone(request.registry.settings['local_timezone'])))
 
             day_quantity = (
                 cap.models.DBSession.query(cap.models.LocationDayQuantity)

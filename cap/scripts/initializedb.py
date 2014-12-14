@@ -11,11 +11,7 @@ from pyramid.paster import (
 
 from pyramid.scripts.common import parse_vars
 
-from ..models import (
-    DBSession,
-    Location,
-    Base,
-    )
+import cap.models
 
 
 def usage(argv):
@@ -33,21 +29,25 @@ def main(argv=sys.argv):
     setup_logging(config_uri)
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    Base.metadata.create_all(engine)
+    cap.models.DBSession.configure(bind=engine)
+    cap.models.init_models(settings)
+    cap.models.Base.metadata.drop_all(engine)
+    cap.models.Base.metadata.create_all(engine)
+    
+
 
     with transaction.manager:
-        DBSession.add(Location(display_name='Alhambra'))
-        DBSession.add(Location(display_name='Montebello'))
-        DBSession.add(Location(display_name='La Puente'))
-        DBSession.add(Location(display_name='Pasadena'))
-        DBSession.add(Location(display_name='Duarte'))
-        DBSession.add(Location(display_name='Perris'))
-        DBSession.add(Location(display_name='Loma Linda'))
-        DBSession.add(Location(display_name='Corona'))
-        DBSession.add(Location(display_name='Riverside'))
-        DBSession.add(Location(display_name='Fontana'))
-        DBSession.add(Location(display_name='West Covina'))
-        DBSession.add(Location(display_name='Rosemead'))
-        DBSession.add(Location(display_name='Glendora'))
-        DBSession.add(Location(display_name='Ontario'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Alhambra'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Montebello'))
+        cap.models.DBSession.add(cap.models.Location(display_name='La Puente'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Pasadena'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Duarte'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Perris'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Loma Linda'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Corona'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Riverside'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Fontana'))
+        cap.models.DBSession.add(cap.models.Location(display_name='West Covina'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Rosemead'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Glendora'))
+        cap.models.DBSession.add(cap.models.Location(display_name='Ontario'))
