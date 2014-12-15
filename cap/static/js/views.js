@@ -79,7 +79,10 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
             },
             onSave: function (ev) {
                 this.locationsModel.each(function (location) {
-                    if (location.hasChanged()===true) {
+                    if (location.hasChanged() || location.get("day_quantities").find(
+                                                    function (day_quantity) {
+                                                        return day_quantity.hasChanged("amount");
+                                                    })) {
                         location.save();
                     }
                 });
@@ -89,24 +92,31 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                     value = field.val(),
                     cell = field.parent(),
                     row = cell.parent(),
-                    field_name = cell.attr("data-date"),
+                    field_name = cell.attr("data-field"),
                     location_id = row.attr("data-location-id"),
-                    location = this.locationsModel.get(location_id)
+                    location = this.locationsModel.get(location_id),
+                    model;
 
-                console.log(field_name);
+                if (field_name === "capacity" || field_name === "display_name") {
+                    // Updating Location Model.
+                    model = location.castSet(field_name, value,
+                                             {validate:true});
+                    value = model.get(field_name);
+                } else if (field_name === "day_quantity") {
+                    // Updating LocationDayQuantity Model.
+                    model = location.setDayQuantity(cell.attr("data-field-date"), value,
+                                                    {validate:true});
+                    value = model.get("amount");
+                }
 
-                location.castSet(field_name, value, {validate:true});
-
-                if (location.validationError) {
-                    value = location.get(field_name) || 0;
-
+                if (model.validationError) {
                     cell.addClass("danger");
-                    $("#form_error").html(location.validationError);
+                    $("#form_error").html(model.validationError);
                     setTimeout(function () {
                         $("#form_error").html("&nbsp;");
                         cell.removeClass("danger");
                     }, 3000);
-                } else if (location.hasChanged()===true) {
+                } else if (model.hasChanged()) {
                     row.removeClass("info");
                     this.selectedRow = null;
                     cell.addClass("success");

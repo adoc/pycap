@@ -39,24 +39,29 @@ def api_locations_post(request, location=cap.models.Location()):
         elif key == 'capacity':
             location.capacity = params['capacity']
 
-        elif key.startswith("day_quantity"):
-            date = (datetime.datetime.strptime(key.split('_')[-1], date_format)
-                        .replace(tzinfo=pytz.timezone(request.registry.settings['local_timezone'])))
+        elif key == 'day_quantities':
+            for day_quantity in val:
+                if ('date' in day_quantity and
+                        'amount' in day_quantity and
+                        day_quantity['amount'] >= 0):
+                    amount = day_quantity['amount']
+                    date = (datetime.datetime.strptime(day_quantity['date'], date_format)
+                                .replace(tzinfo=local_tz))
+                    day_quantity_record = (
+                        cap.models.DBSession.query(cap.models.LocationDayQuantity)
+                                .filter(cap.models.LocationDayQuantity.location==location)
+                                .filter(cap.models.LocationDayQuantity.date==date)
+                                .first() or 
+                            cap.models.LocationDayQuantity())
 
-            day_quantity = (
-                cap.models.DBSession.query(cap.models.LocationDayQuantity)
-                        .filter(cap.models.LocationDayQuantity.location==location)
-                        .filter(cap.models.LocationDayQuantity.date==date)
-                        .first() or 
-                    cap.models.LocationDayQuantity())
-
-            day_quantity.location = location
-            day_quantity.date = date
-            day_quantity.amount = val
+                    day_quantity_record.location = location
+                    day_quantity_record.date = date
+                    day_quantity_record.amount = amount
 
     cap.models.DBSession.add(location)
 
     return True
+    return location
 
 
 @view_config(route_name="api_locations_get_byid", renderer="json")

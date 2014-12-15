@@ -64,28 +64,23 @@
     <tbody>
       <% locationsModel.each(function(location) { %>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
-          <% if (admin === true) { %>
-            <td class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
-          <% } %>
+            <% if (admin === true) { %>
+                <td class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
+            <% } %>
             <td class="field field_display_name" data-field="display_name"><%-location.get("display_name")%></td>
-          <% daysModel.each(function(day, i) {
-            if (day.get("day_num") != 0) {
-                var date=day.get("date"),
-                    day_quantity,
-                    day_quantities,
-                    quantity = 0;
-                if (day_quantities = location.get("day_quantities")) {
-                    if (day_quantity = day_quantities.find(
-                                            function(day_quantity) {
-                                                return day_quantity.get("date") == date;
-                                            })) {
-                        quantity = day_quantity.get("amount");
+            <% daysModel.each(function(day, i) {
+                if (day.get("day_num") != 0) {
+                    var date=day.get("date"),
+                        day_quantity = location.getDayQuantity(date),
+                        amount = day_quantity.get("amount");
+                    if (amount < 0) {
+                        amount = '';
                     }
-                } %>
-            <td class="field field_day_quantity" data-date="<%-date%>"><%-quantity%></td>
-          <% } else { %>
-            <td class="warning"></td>
-          <% }}); %>
+                    %>
+                <td class="field field_day_quantity" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
+            <% } else { %>
+                <td class="warning"></td>
+            <% }}); %>
         </tr>
       <% }); %>
     </tbody>
