@@ -1,4 +1,5 @@
 <style>
+
     table#locations_table {
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -55,7 +56,7 @@
             var field_name = "day_quantity_"+day.get("date"); %>
             <th class="col_day_quantity" data-field="<%-field_name%>"><%-day.get("day_name")%><br /><span style="font-weight: normal;"><%-day.get("date")%></span></th>
         <% } else { %>
-            <th class="warning" style="font-weight: normal;">
+            <th class="active" style="font-weight: normal;">
                 <em><%-day.get("day_name")%><br /><br /></em>
             </th>
         <% }}); %>
@@ -65,10 +66,12 @@
       <% locationsModel.each(function(location) { %>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
             <% if (admin === true) { %>
-                <td class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
+                <td rowspan="1" class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
             <% } %>
-            <td class="field field_display_name" data-field="display_name"><%-location.get("display_name")%></td>
-            <% daysModel.each(function(day, i) {
+            <td rowspan="1" class="field field_display_name" data-field="display_name"><%-location.get("display_name")%></td>
+            <% 
+            // First set up the quantity/input fields.
+            daysModel.each(function(day, i) {
                 if (day.get("day_num") != 0) {
                     var date=day.get("date"),
                         day_quantity = location.getDayQuantity(date),
@@ -77,9 +80,28 @@
                         amount = '';
                     }
                     %>
-                <td class="field field_day_quantity" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
+                <td class="field field_day_quantity text-primary" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
             <% } else { %>
-                <td class="warning"></td>
+                <td rowspan="2" class="active"></td>
+            <% }}); %>
+        </tr>
+        <tr class="data_row" data-location-id="<%-location.get("id")%>">
+            <td colspan="2" style="text-align: right;"><em>Current</em></td>
+            <% 
+            // First set up the quantity/input fields.
+            daysModel.each(function(day, i) {
+                if (day.get("day_num") != 0) {
+                    var date=day.get("date"),
+                        day_quantity = location.getDayQuantity(date),
+                        capacity = location.get("capacity"),
+                        amount = day_quantity.get("amount"),
+                        current;
+                    if (amount < 0) {
+                        amount = 0;
+                    }
+                    current = capacity - amount;
+                    %>
+                <td class="field field_day_balance<%-current<=0 && ' text-danger danger' || ' text-success'%><%-current<=5 && ' text-warning warning' || ''%>" data-field-date="<%-date%>"><em><%-current%></em></td>
             <% }}); %>
         </tr>
       <% }); %>

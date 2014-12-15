@@ -124,6 +124,7 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                         return 'You have unsaved changes.';
                     });
                     this.changed = true;
+                    $("#save_button").addClass("btn-warning");
                     $("#form_warning").html("Form is unsaved.");
                 }
 

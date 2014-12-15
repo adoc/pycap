@@ -65,7 +65,9 @@ define(['backbone'],
                 for (var key in attrs) {
                     var val = attrs[key];
                     if (key === "capacity" && isNaN(val)) {
-                        return "Capacity must be a number";
+                        return "Location capacity must be a number";
+                    } else if (key ==="capacity" && val < 0) {
+                        return "Location capacity must be 0 or greater."
                     } else if (key === "display_name" && val.length <= 3 || val.length > 32) {
                         return "Display name length must be greater than 3 characters and less than 33.";
                     }
