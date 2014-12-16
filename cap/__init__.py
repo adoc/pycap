@@ -17,10 +17,13 @@ def main(global_config, **settings):
     config.add_static_view('static', 'static',
                             cache_max_age=int(settings['cache_max_age']))
 
+    # HTML view routes.
     config.add_route('home', '/')
-    config.add_route('locations_manage', '/locations')
+    config.add_route('locations_manage', '/manage')
+    config.add_route('locations_view', '/locations')
+    config.add_route('location_view', '/{location_name}')
 
-
+    # API routes.
     config.add_route('api_locations_get', '/api/v1/locations',
                         request_method=("GET",))
     config.add_route('api_locations_post', '/api/v1/locations',
@@ -30,10 +33,7 @@ def main(global_config, **settings):
     config.add_route('api_locations_put', '/api/v1/locations/{id}',
                         request_method=("PUT",))
 
-
-
     config.add_route('api_days', '/api/v1/days')
-
 
     config.scan()
     return config.make_wsgi_app()

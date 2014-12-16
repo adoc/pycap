@@ -74,7 +74,7 @@ define(['backbone'],
                 }
             },
             constructor: function (attrs, options) {
-
+                attrs || (attrs = {});
                 if (attrs.hasOwnProperty("day_quantities")) {
                     for (var i in attrs["day_quantities"]) {
                         if (!(attrs["day_quantities"][i] instanceof Backbone.Model)) {

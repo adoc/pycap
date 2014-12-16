@@ -6,10 +6,14 @@ import collections
 # put in own module
 import datetime
 
+import sqlalchemy.orm.exc
+
 from pyramid.response import Response
 from pyramid.view import view_config
 
+
 from sqlalchemy.exc import DBAPIError
+
 
 import cap.util
 import cap.models
@@ -88,9 +92,35 @@ def home(request):
     return {}
 
 
+@view_config(route_name="location_view",
+             renderer="templates/location.view.html.mako")
+def location_view(request):
+    """
+    """
+    date_format = request.registry.settings['date_format']
+    try:
+        location = (cap.models.DBSession.query(cap.models.Location)
+                    .filter(cap.models.Location.name == request.matchdict['location_name'])
+                    .one())
+    except sqlalchemy.orm.exc.NoResultFound:
+        return {'error': "Location not found."}
+    else:
+        return {'location': location,
+                'date': cap.util.get_localized_datetime(request).strftime(date_format)}
+
+
 @view_config(route_name="locations_manage",
              renderer="templates/locations.manage.html.mako")
 def locations_manage(request):
+    """Shows a given shop and gives a field for entering number of cars
+    for the next 7 days.
+    """
+    return {}
+
+
+@view_config(route_name="locations_view",
+             renderer="templates/locations.view.html.mako")
+def locations_view(request):
     """Shows a given shop and gives a field for entering number of cars
     for the next 7 days.
     """

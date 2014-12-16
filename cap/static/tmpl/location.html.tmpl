@@ -1,0 +1,26 @@
+<%
+var day_quantity = _.find(locationModel.get("day_quantities"), function (day_quantity) {return day_quantity.date == date;}),
+    capacity = locationModel.get("capacity"),
+    amount = (day_quantity && day_quantity.amount || 0),
+    current = capacity - amount;
+
+%>
+<style>
+table {
+    font-size: 14pt;
+}
+</style>
+<table style="width: 33%;" class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Current Count</th>
+            <th>Available Capacity</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><%-amount%></td>
+            <td class="<%-current<=0 && ' text-danger danger' || ' text-success'%><%-current<=5 && ' text-warning warning' || ''%>"><%-current%></td>
+        </tr>
+    </tbody>
+</table>

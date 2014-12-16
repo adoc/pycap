@@ -7,8 +7,9 @@ import datetime
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="pyramid web application">
-        <meta name="author" content="Pylons Project">
+        <meta name="description" content="Seidner's Shop Capacity App">
+        <meta name="author" content="http://github.com/adoc">
+        <title>${hasattr(next, 'title') and next.title()+' - ' or '' |trim}SCC Shop Capacity</title>
         <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
         <style>
             /* Sticky footer styles
@@ -33,9 +34,7 @@ import datetime
         </style>
     </head>
     <body>
-        <div>
-            ${next.body()}
-        </div>
+        ${next.body()}
         <footer class="footer">
             <div class="container">
                 <p class="text-muted">&copy; ${datetime.date.today().year} Seidner's Collision Centers.</p>
@@ -44,7 +43,9 @@ import datetime
         <script type="text/javascript" src="/static/js/lib/require.min.js"></script>
         <script type="text/javascript" src="/static/js/common.js"></script>
     %if hasattr(next, "scripts"):
-        ${next.scripts()}
+        <script type="text/javascript">
+            ${next.scripts()}
+        </script>
     %endif
     </body>
 </html>

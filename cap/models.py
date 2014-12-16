@@ -3,6 +3,10 @@ import sqlalchemy
 import sqlalchemy.types
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
+import sqlalchemy.ext.hybrid
+
+from sqlalchemy.sql.expression import func
+
 import zope.sqlalchemy
 
 import pytz
@@ -47,6 +51,17 @@ def init_models(settings):
 
         dyn_day_quantities = sqlalchemy.orm.relationship("LocationDayQuantity",
                                                         lazy="dynamic")
+
+        @sqlalchemy.ext.hybrid.hybrid_property
+        def name(self):
+            """Name function to lowercase and replace spaces with
+            underscore."""
+            return self.display_name.lower().replace(' ', '_')
+
+        @name.expression
+        def name(cls):
+            """SQL representation of the `name` function."""
+            return func.replace(func.lower(cls.display_name), ' ', '_')
 
         def __json__(self, request):
             return {

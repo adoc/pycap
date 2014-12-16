@@ -5,22 +5,17 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
         var Views = {};
 
         Views.Locations = Backbone.View.extend({
-            /* Locations manager view.
-            */
+            /* Locations manager view. */
             id: "locations",
-            admin: true,
             events: {
                 "click .field": "onClickRow",
                 "click .field > *": function () { return false }, // Do not bubble click event up.
-                "dblclick .field": "onDblClick",
-                "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
-                "click #refresh_button": "onRefresh",
-                "click #save_button": "onSave",
-                "focusout input.form-control": "onLeaveField"
+                "click #refresh_button": "onRefresh"
             },
             selectedRow: null,
             selectedCol: null,
             changed: false,
+            manage: false,
             onClickRow: function(ev) {
                 /* Simply select a row and update the row with the
                 "info" class.
@@ -48,24 +43,48 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
 
                 return false;
             },
-            onDblClick: function (ev) {
-                /* Edit the cell.
-                */
-                var cell = $(ev.target),
-                    row = cell.parent(),
-                    location_id = row.attr("data-location-id");
-
-                if (cell.hasClass("field_capacity") ||
-                    cell.hasClass("field_display_name") ||
-                    cell.hasClass("field_day_quantity")) {
-                    this.editingCell = cell.html();
-                    var input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
-                    cell.html(input);
+            onRefresh: function (ev) {
+                this.locationsModel.fetch({reset: true});
+                this.daysModel.fetch({reset: true});
+            },
+            render: function() {
+                this.selectedRow = null;
+                this.$el.html(Templates.Locations(this));
+                $(window).unbind('beforeunload');
+                this.changed = false;
+                return this;
+            },
+            conditionalRender: function () {
+                if (this.locationsModel.length > 0 &&
+                        this.daysModel.length > 0) {
+                    this.render();
                 }
+            },
+            initialize: function() {
+                this.locationsModel = new Models.Locations();
+                this.daysModel = new Models.Days();
 
-                input.focus();
-                input.select();
-                return false;
+                this.listenTo(this.locationsModel, "add remove reset sync",
+                              _.debounce(this.render));
+                this.listenTo(this.daysModel, "add remove reset",
+                              _.debounce(this.render));
+
+                this.locationsModel.fetch();
+                this.daysModel.fetch();
+            },
+            watch: function () {
+                setInterval(this.onRefresh, 5000);
+                this.onRefresh();
+            }
+        });
+
+        Views.LocationsManage = Views.Locations.extend({
+            manage: true,
+            events: {
+                "dblclick .field": "onDblClick",
+                "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
+                "click #save_button": "onSave",
+                "focusout input.form-control": "onLeaveField"
             },
             onRefresh: function (ev) {
                 var doSave = true;
@@ -86,6 +105,25 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                         location.save();
                     }
                 });
+            },
+            onDblClick: function (ev) {
+                /* Edit the cell.
+                */
+                var cell = $(ev.target),
+                    row = cell.parent(),
+                    location_id = row.attr("data-location-id");
+
+                if (cell.hasClass("field_capacity") ||
+                    cell.hasClass("field_display_name") ||
+                    cell.hasClass("field_day_quantity")) {
+                    this.editingCell = cell.html();
+                    var input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
+                    cell.html(input);
+                }
+
+                input.focus();
+                input.select();
+                return false;
             },
             onLeaveField: function (ev) {
                 var field = $(ev.target),
@@ -130,30 +168,26 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
 
                 cell.html(value);
             },
+        });
+
+        Views.Location = Backbone.View.extend({
+            id: "location",
             render: function() {
-                this.selectedRow = null;
-                this.$el.html(Templates.Locations(this));
-                $(window).unbind('beforeunload');
-                this.changed = false;
-                return this;
+                this.$el.html(Templates.Location(this));
             },
-            conditionalRender: function () {
-                if (this.locationsModel.length > 0 &&
-                        this.daysModel.length > 0) {
-                    this.render();
+            initialize: function(attrs, options) {
+                this.date = attrs.date;
+                this.locationModel = new Models.Location({id: attrs.locationId});
+                this.listenTo(this.locationModel, "add remove reset sync",
+                              _.debounce(this.render));
+            },
+            watch: function () {
+                var self = this;
+                function poll() {
+                    self.locationModel.fetch();
                 }
-            },
-            initialize: function() {
-                this.locationsModel = new Models.Locations();
-                this.daysModel = new Models.Days();
-
-                this.listenTo(this.locationsModel, "add remove reset sync",
-                              _.debounce(this.render));
-                this.listenTo(this.daysModel, "add remove reset",
-                              _.debounce(this.render));
-
-                this.locationsModel.fetch();
-                this.daysModel.fetch();
+                setInterval(poll, 5000);
+                poll();
             }
         });
 
