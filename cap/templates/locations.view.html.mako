@@ -2,7 +2,7 @@
 <div id="container" class="container">
 </div>
 <%def name="title()">
-Manage Locations
+View Locations
 </%def>
 <%def name="scripts()">
     require(['jquery', 'views'], function($, Views) {

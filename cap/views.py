@@ -12,9 +12,6 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 
-from sqlalchemy.exc import DBAPIError
-
-
 import cap.util
 import cap.models
 
@@ -22,9 +19,14 @@ import cap.models
 # API views
 @view_config(route_name="api_locations_get", renderer="json")
 def api_locations_get(request):
-    return (cap.models.DBSession
-                .query(cap.models.Location)
-                    .all())
+    locations = (cap.models.DBSession
+                    .query(cap.models.Location)
+                        .all())
+    if 'list' in request.params:
+        return [{'name': location.name,
+                'display_name': location.display_name} for location in locations]
+    else:
+        return locations
 
 
 @view_config(route_name="api_locations_post", renderer="json")
@@ -81,7 +83,7 @@ def api_locations_put(request):
 
 
 @view_config(route_name="api_days", renderer="json")
-def days(request):
+def api_days(request):
     return cap.util.get_days(request)
 
 
@@ -93,7 +95,8 @@ def home(request):
 
 
 @view_config(route_name="location_view",
-             renderer="templates/location.view.html.mako")
+            permission='user',
+            renderer="templates/location.view.html.mako")
 def location_view(request):
     """
     """
@@ -110,7 +113,8 @@ def location_view(request):
 
 
 @view_config(route_name="locations_manage",
-             renderer="templates/locations.manage.html.mako")
+            permission='manager',
+            renderer="templates/locations.manage.html.mako")
 def locations_manage(request):
     """Shows a given shop and gives a field for entering number of cars
     for the next 7 days.
@@ -119,7 +123,8 @@ def locations_manage(request):
 
 
 @view_config(route_name="locations_view",
-             renderer="templates/locations.view.html.mako")
+            permission='user',
+            renderer="templates/locations.view.html.mako")
 def locations_view(request):
     """Shows a given shop and gives a field for entering number of cars
     for the next 7 days.

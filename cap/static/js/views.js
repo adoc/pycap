@@ -4,13 +4,55 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
     function(_, $, Backbone, Models, Templates) {
         var Views = {};
 
+        Views.Toolbar = Backbone.View.extend({
+            home: true,
+            locations: false,
+            logout: true,
+            refresh: false,
+            edit: false,
+            save: false,
+            help: false,
+            events: {
+                "click #home_button": "onHome",
+                "click #locations_button": "onLocations",
+                "click #logout_button": "onLogout",
+                "click #refresh_button": "onRefresh",
+                "click #edit_button": "onEdit",
+                "click #save_button": "onSave",
+                "click #help_button": "onHelp"
+            },
+            onHome: function () {
+                window.location.href = "/";
+            },
+            onLocations: function () {
+                window.location.href = "/locations"
+            },
+            onLogout: function () {
+                window.location.href = "/logout";
+            },
+            onRefresh: function () {
+                throw "No onRefresh applied to this toolbar.";
+            },
+            onEdit: function () {
+                throw "No onEdit applied to this toolbar.";
+            },
+            onSave: function () {
+                throw "No onSave applied to this toolbar.";
+            },
+            onHelp: function () {
+                throw "No onHelp applied to this toolbar.";
+            },
+            render: function () {
+                this.$el.html(Templates.Toolbar(this));
+            }
+        });
+
         Views.Locations = Backbone.View.extend({
             /* Locations manager view. */
             id: "locations",
             events: {
                 "click .field": "onClickRow",
                 "click .field > *": function () { return false }, // Do not bubble click event up.
-                "click #refresh_button": "onRefresh"
             },
             selectedRow: null,
             selectedCol: null,
@@ -43,6 +85,7 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
 
                 return false;
             },
+            // Abstract this to Toolbar view.
             onRefresh: function (ev) {
                 this.locationsModel.fetch({reset: true});
                 this.daysModel.fetch({reset: true});
@@ -52,6 +95,8 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                 this.$el.html(Templates.Locations(this));
                 $(window).unbind('beforeunload');
                 this.changed = false;
+                this.toolBarView.setElement($("#toolbar"));
+                this.toolBarView.render();
                 return this;
             },
             conditionalRender: function () {
@@ -61,6 +106,18 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                 }
             },
             initialize: function() {
+                var self = this;
+
+                this.toolBarView = new Views.Toolbar();
+                this.toolBarView.refresh = true;
+                this.toolBarView.edit = true;
+                this.toolBarView.onRefresh = function () {
+                    self.onRefresh.apply(self, arguments);
+                }
+                this.toolBarView.onEdit = function () {
+                    window.location.href = "/locations/edit";
+                }
+
                 this.locationsModel = new Models.Locations();
                 this.daysModel = new Models.Days();
 
@@ -81,11 +138,13 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
         Views.LocationsManage = Views.Locations.extend({
             manage: true,
             events: {
+                "click .field": "onClickRow",
+                "click .field > *": function () { return false }, // Do not bubble click event up.
                 "dblclick .field": "onDblClick",
                 "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
-                "click #save_button": "onSave",
                 "focusout input.form-control": "onLeaveField"
             },
+            // Abstract to the toolbar View.
             onRefresh: function (ev) {
                 var doSave = true;
                 if (this.changed) {
@@ -96,6 +155,7 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                     this.daysModel.fetch({reset: true});
                 }
             },
+            // Abstract to the toolbar View.
             onSave: function (ev) {
                 this.locationsModel.each(function (location) {
                     if (location.hasChanged() || location.get("day_quantities").find(
@@ -168,6 +228,20 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
 
                 cell.html(value);
             },
+            onHelp: function () {
+
+            },
+            initialize: function () {
+                var self = this;
+                Views.Locations.prototype.initialize.apply(this, arguments)
+                this.toolBarView.edit = false;
+                this.toolBarView.locations = true;
+                this.toolBarView.save = true;
+                this.toolBarView.onSave = function () {
+                    self.onSave.apply(self, arguments);
+                }
+                //this.toolBarView.help = true;
+            }
         });
 
         Views.Location = Backbone.View.extend({
@@ -181,13 +255,29 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                 this.listenTo(this.locationModel, "add remove reset sync",
                               _.debounce(this.render));
             },
+            onRefresh: function () {
+                this.locationModel.fetch({reset: true});
+            },
             watch: function () {
                 var self = this;
                 function poll() {
-                    self.locationModel.fetch();
+                    self.onRefresh();
                 }
                 setInterval(poll, 5000);
                 poll();
+            }
+        });
+
+        Views.LocationsShortlist = Backbone.View.extend({
+            id: "locations_short_list",
+            render: function() {
+                this.$el.html(Templates.LocationsShortlist(this));
+            },
+            initialize: function() {
+                this.locationsShortlistModel = new Models.Locations();
+                this.listenTo(this.locationsShortlistModel, "add remove reset",
+                              _.debounce(this.render));
+                this.locationsShortlistModel.fetch({data: 'list'});
             }
         });
 

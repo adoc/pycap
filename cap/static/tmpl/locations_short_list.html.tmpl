@@ -1,0 +1,8 @@
+<ul style="list-style-type: none;">
+<% locationsShortlistModel.each(function (location) { %>
+    <li style="float: left;">
+        <a href="/<%-location.get("name")%>"><%-location.get("display_name")%></a>
+        &nbsp;
+    </li>
+<% }); %>
+</ul>

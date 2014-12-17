@@ -37,16 +37,8 @@
     <p style="margin-left: 0px;" id="form_error" class="text-danger">&nbsp;</p>
 </div>
 <% } %>
-<div class="btn-group">
-    <button id="refresh_button" type="button" title="Refresh from server." class="btn btn-default" aria-label="Left Align">
-        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-    </button>
-<% if (manage === true) { %>
-    <button id="save_button" type="button" title="Save to server." class="btn btn-default" aria-label="Right Align">
-        <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
-    </button>
-<% } %>
-</div>
+<% // removing in to Toolbar %>
+<div id="toolbar" class="btn-group"></div>
 <table id="locations_table" class="table table-striped table-bordered">
     <thead>
         <tr>

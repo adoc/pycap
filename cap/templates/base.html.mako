@@ -9,7 +9,7 @@ import datetime
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Seidner's Shop Capacity App">
         <meta name="author" content="http://github.com/adoc">
-        <title>${hasattr(next, 'title') and next.title()+' - ' or '' |trim}SCC Shop Capacity</title>
+        <title>${hasattr(next, 'title') and next.title().strip()+' - ' or ''}SCC Shop Capacity</title>
         <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
         <style>
             /* Sticky footer styles

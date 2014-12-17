@@ -1,6 +1,12 @@
 <%inherit file="base.html.mako" />
+<style>
+.btn-group {
+    margin-top: 8px;
+}
+</style>
 <div class="container">
-<h1>Shop Capacity</h1>
+    <div id="toolbar" class="btn-group"></div>
+    <h1>Shop Capacity</h1>
 %if error:
     <p class="text-danger">${error}</p>
 %elif location:
@@ -19,6 +25,16 @@
         var view = new Views.Location({locationId: ${location.id}, date: "${date}"});
         $("#container").html(view.$el);
         view.watch();
+
+        var toolbar = new Views.Toolbar();
+        toolbar.home = true;
+        toolbar.locations = true;
+        toolbar.refresh = true;
+        toolbar.onRefresh = function () {
+            view.onRefresh.apply(view, arguments);
+        }
+        toolbar.setElement($("#toolbar"));
+        toolbar.render();
     });
 %endif
 </%def>

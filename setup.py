@@ -10,7 +10,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'pyramid',
-    'pyramid_chameleon',
+    'pyramid_mako',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'SQLAlchemy',
@@ -21,7 +21,7 @@ requires = [
     ]
 
 setup(name='cap',
-      version='0.0',
+      version='0.1',
       description='cap',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
@@ -30,9 +30,9 @@ setup(name='cap',
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
-      author='',
+      author='https://github.com/adoc',
       author_email='',
-      url='',
+      url='https://github.com/adoc/pycap',
       keywords='web wsgi bfg pylons pyramid',
       packages=find_packages(),
       include_package_data=True,
