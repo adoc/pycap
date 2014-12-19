@@ -1,7 +1,7 @@
 "use strict";
 
-define(['backbone'],
-    function(Backbone) {
+define(['backbone', 'config'],
+    function(Backbone, Config) {
         var Models = {};
 
         /* Location Day Quantity. */
@@ -40,7 +40,7 @@ define(['backbone'],
 
         /* Location Model. */
         Models.Location = Backbone.Model.extend({
-            urlRoot: "/api/v1/locations",
+            urlRoot: Config.uri.api.locations,
             castSet: function (key, val, options) {
                 if (key === "capacity") {
                     val = parseInt(val);
@@ -92,14 +92,14 @@ define(['backbone'],
 
         /* Collection of Location objects. */
         Models.Locations = Backbone.Collection.extend({
-            url: "/api/v1/locations",
+            url: Config.uri.api.locations,
             model: Models.Location
         });
 
         Models.Day = Backbone.Model.extend({});
 
         Models.Days = Backbone.Collection.extend({
-            url: "/api/v1/days",
+            url: Config.uri.api.days,
             model: Models.Day
         });
 

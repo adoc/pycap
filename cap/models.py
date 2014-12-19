@@ -4,13 +4,12 @@ import sqlalchemy.types
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 import sqlalchemy.ext.hybrid
-
-from sqlalchemy.sql.expression import func
-
 import zope.sqlalchemy
-
+import pyramid.security
 import pytz
 import cap.util
+
+from sqlalchemy.sql.expression import func
 
 
 DBSession = sqlalchemy.orm.scoped_session(
@@ -19,7 +18,7 @@ DBSession = sqlalchemy.orm.scoped_session(
 Base = sqlalchemy.ext.declarative.declarative_base()
 
 
-def init_models(settings):
+def init_models(settings, UserModel):
     """To be run during application initialization. This allows for the passing
     of config options.
     """
@@ -43,11 +42,29 @@ def init_models(settings):
             return self.epoch + datetime.timedelta(days=value)
 
     class Location(Base):
+        @property
+        def __acl__(self):
+            if self.owner:
+                return [
+                    (pyramid.security.Allow, 'g:admins', pyramid.security.ALL_PERMISSIONS),
+                    (pyramid.security.Allow, 'g:managers', 'edit'),
+                    (pyramid.security.Allow, 'g:managers', 'view'),
+                    (pyramid.security.Allow, 'g:users', 'view'),
+                    (pyramid.security.Allow, self.owner.name, 'edit')
+                ]
+            else:
+                return []
+
         __tablename__ = 'locations'
         id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
         display_name = sqlalchemy.Column(sqlalchemy.String(64), index=True,
                                             unique=True)
         capacity = sqlalchemy.Column(sqlalchemy.Integer, default=0)
+
+        owner_userid = sqlalchemy.Column(sqlalchemy.Integer,
+                                         sqlalchemy.ForeignKey(UserModel.id))
+
+        owner = sqlalchemy.orm.relationship(UserModel, backref="locations")
 
         dyn_day_quantities = sqlalchemy.orm.relationship("LocationDayQuantity",
                                                         lazy="dynamic")
@@ -73,7 +90,11 @@ def init_models(settings):
                                 LocationDayQuantity.date >=
                                     cap.util.get_localized_datetime(request))
                                 .order_by(LocationDayQuantity.date.asc())
-                                .all())
+                                .all()),
+                'perm_edit': isinstance(request.has_permission('edit', self),
+                                        pyramid.security.ACLAllowed),
+                'perm_manage': isinstance(request.has_permission('manage', self),
+                                        pyramid.security.ACLAllowed)
             }
 
     class LocationDayQuantity(Base):

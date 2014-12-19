@@ -1,40 +1,43 @@
 "use strict";
 
-define(['underscore', 'jquery', 'backbone', 'models','templates'],
-    function(_, $, Backbone, Models, Templates) {
+define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
+    function(_, $, Backbone, Config, Models, Templates) {
         var Views = {};
 
         Views.Toolbar = Backbone.View.extend({
             home: true,
-            locations: false,
             logout: true,
             refresh: false,
-            edit: false,
+            refresh_watch: false,
             save: false,
+            save_warn: false,
             help: false,
             events: {
                 "click #home_button": "onHome",
-                "click #locations_button": "onLocations",
                 "click #logout_button": "onLogout",
-                "click #refresh_button": "onRefresh",
-                "click #edit_button": "onEdit",
+                "mousedown #refresh_button": "onMouseDownRefresh",
+                "contextmenu #refresh_button": function() { return false; },
                 "click #save_button": "onSave",
                 "click #help_button": "onHelp"
             },
             onHome: function () {
-                window.location.href = "/";
-            },
-            onLocations: function () {
-                window.location.href = "/locations"
+                window.location.href = Config.uri.home;
             },
             onLogout: function () {
-                window.location.href = "/logout";
+                window.location.href = Config.uri.logout;
+            },
+            onMouseDownRefresh: function (ev) {
+                if (ev.which == 1) {
+                    this.onRefresh(ev);
+                } else if (ev.which == 3) {
+                    this.onWatch(ev);
+                }
             },
             onRefresh: function () {
                 throw "No onRefresh applied to this toolbar.";
             },
-            onEdit: function () {
-                throw "No onEdit applied to this toolbar.";
+            onWatch: function () {
+                throw "No onWatch applied to this toolbar.";
             },
             onSave: function () {
                 throw "No onSave applied to this toolbar.";
@@ -54,10 +57,12 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                 "click .field": "onClickRow",
                 "click .field > *": function () { return false }, // Do not bubble click event up.
             },
+            watchInterval: 5000,
             selectedRow: null,
             selectedCol: null,
             changed: false,
             manage: false,
+            capacity: false,
             onClickRow: function(ev) {
                 /* Simply select a row and update the row with the
                 "info" class.
@@ -110,13 +115,12 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
 
                 this.toolBarView = new Views.Toolbar();
                 this.toolBarView.refresh = true;
-                this.toolBarView.edit = true;
                 this.toolBarView.onRefresh = function () {
                     self.onRefresh.apply(self, arguments);
                 }
-                this.toolBarView.onEdit = function () {
-                    window.location.href = "/locations/edit";
-                }
+                this.toolBarView.onWatch = function () {
+                    self.onWatch.apply(self, arguments);
+                };
 
                 this.locationsModel = new Models.Locations();
                 this.daysModel = new Models.Days();
@@ -129,20 +133,48 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                 this.locationsModel.fetch();
                 this.daysModel.fetch();
             },
+            onWatch: function () {
+                if (!this.watchTimer) {
+                    this.watch();
+                } else {
+                    this.unwatch();
+                }
+            },
             watch: function () {
-                setInterval(this.onRefresh, 5000);
-                this.onRefresh();
+                var self = this;
+                function poll () {
+                    self.onRefresh.apply(self, arguments);
+                }
+                this.watchTimer = setInterval(poll, this.watchInterval);
+                poll();
+                this.toolBarView.refresh_watch = true;
+                this.toolBarView.render();
+            },
+            unwatch: function () {
+                clearTimeout(this.watchTimer);
+                this.watchTimer = null;
+                this.toolBarView.refresh_watch = false;
+                this.toolBarView.render();
             }
         });
 
         Views.LocationsManage = Views.Locations.extend({
             manage: true,
+            capacity: true,
             events: {
                 "click .field": "onClickRow",
                 "click .field > *": function () { return false }, // Do not bubble click event up.
                 "dblclick .field": "onDblClick",
                 "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
-                "focusout input.form-control": "onLeaveField"
+                "focusout input.form-control": "onLeaveField",
+                "keyup input.form-control": "keyupInField"
+            },
+            render: function () {
+                Views.Locations.prototype.render.apply(this, arguments);
+                if (this.editWatchTimer) {
+                    this.editWatchTimer = null;
+                    this.watch();
+                }
             },
             // Abstract to the toolbar View.
             onRefresh: function (ev) {
@@ -165,10 +197,10 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                         location.save();
                     }
                 });
+                this.toolBarView.save_warn = false;
             },
             onDblClick: function (ev) {
-                /* Edit the cell.
-                */
+                // Edit the cell.
                 var cell = $(ev.target),
                     row = cell.parent(),
                     location_id = row.attr("data-location-id");
@@ -179,11 +211,22 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                     this.editingCell = cell.html();
                     var input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
                     cell.html(input);
+
+                    if (this.watchTimer) {
+                        this.editWatchTimer = this.watchTimer;
+                        this.unwatch();
+                    }
                 }
 
                 input.focus();
                 input.select();
                 return false;
+            },
+            keyupInField: function (ev) {
+                if (ev.which == 13) {
+                    $(ev.target).blur();
+                    ev.preventDefault();
+                }
             },
             onLeaveField: function (ev) {
                 var field = $(ev.target),
@@ -222,14 +265,17 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                         return 'You have unsaved changes.';
                     });
                     this.changed = true;
-                    $("#save_button").addClass("btn-warning");
+
+                    //$("#save_button").addClass("btn-warning");
+                    this.toolBarView.save_warn = true;
+                    this.toolBarView.render();
+
                     $("#form_warning").html("Form is unsaved.");
                 }
 
                 cell.html(value);
             },
             onHelp: function () {
-
             },
             initialize: function () {
                 var self = this;
@@ -241,43 +287,6 @@ define(['underscore', 'jquery', 'backbone', 'models','templates'],
                     self.onSave.apply(self, arguments);
                 }
                 //this.toolBarView.help = true;
-            }
-        });
-
-        Views.Location = Backbone.View.extend({
-            id: "location",
-            render: function() {
-                this.$el.html(Templates.Location(this));
-            },
-            initialize: function(attrs, options) {
-                this.date = attrs.date;
-                this.locationModel = new Models.Location({id: attrs.locationId});
-                this.listenTo(this.locationModel, "add remove reset sync",
-                              _.debounce(this.render));
-            },
-            onRefresh: function () {
-                this.locationModel.fetch({reset: true});
-            },
-            watch: function () {
-                var self = this;
-                function poll() {
-                    self.onRefresh();
-                }
-                setInterval(poll, 5000);
-                poll();
-            }
-        });
-
-        Views.LocationsShortlist = Backbone.View.extend({
-            id: "locations_short_list",
-            render: function() {
-                this.$el.html(Templates.LocationsShortlist(this));
-            },
-            initialize: function() {
-                this.locationsShortlistModel = new Models.Locations();
-                this.listenTo(this.locationsShortlistModel, "add remove reset",
-                              _.debounce(this.render));
-                this.locationsShortlistModel.fetch({data: 'list'});
             }
         });
 

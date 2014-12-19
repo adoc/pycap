@@ -31,7 +31,7 @@ def get_days(request):
     now = get_localized_datetime(request)
     format = request.registry.settings['date_format']
     def gen_days():
-        for day_offset in range(1, 10):
+        for day_offset in range(1, 11):
             delta = datetime.timedelta(days=day_offset-1) # For calculating the date.
             day = (now + delta)
             yield {'day_num': int(day.strftime('%w')),

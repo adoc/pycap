@@ -4,22 +4,12 @@
     </button>
 <% } %>
 <% if (refresh === true) { %>
-    <button id="refresh_button" type="button" title="Refresh from server." class="btn btn-default" aria-label="Left Align">
+    <button id="refresh_button" type="button" title="Left click to refresh data. Right click to toggle data watch." class="btn <%-refresh_watch && "btn-success" || "btn-default"%>" aria-label="Left Align">
         <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
     </button>
 <% } %>
-<% if (locations === true) { %>
-    <button id="locations_button" type="button" title="See all Locations data." class="btn btn-default" aria-label="Left Align">
-        <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
-    </button>
-<% } %>
-<% if (edit === true) { %>
-    <button id="edit_button" type="button" title="Edit data." class="btn btn-default" aria-label="Left Align">
-        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-    </button>
-<% } %>
 <% if (save === true) { %>
-    <button id="save_button" type="button" title="Save to server." class="btn btn-default" aria-label="Right Align">
+    <button id="save_button" type="button" title="Save to server." class="btn <%-save_warn && "btn-warning" || "btn-default"%>" aria-label="Right Align">
         <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
     </button>
 <% } %>

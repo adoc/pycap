@@ -8,5 +8,7 @@ View Locations
     require(['jquery', 'views'], function($, Views) {
         var view = new Views.Locations();
         $("#container").html(view.$el);
+
+        view.watch();
     });
 </%def>

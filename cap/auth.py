@@ -2,47 +2,117 @@
 Excerpts pulled from
 https://github.com/mmerickel/pyramid_auth_demo/blob/master/2.object_security/demo.py
 """
+
+import os
+import hashlib
+
+import sqlalchemy
+import sqlalchemy.orm
+import sqlalchemy.orm.exc
+
 import pyramid.security
 import pyramid.view
 import pyramid.httpexceptions
 
 
-class User(object):
-    @property
-    def __acl__(self):
-        return [(Allow, self.username, 'view')]
+import cap.models
 
-    def __init__(self, username, password, groups=None):
-        self.username = username
-        self.password = password
-        self.groups = groups or []
+
+class UserGroup(cap.models.Base):
+    __tablename__ = "usersgroups"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    userid = sqlalchemy.Column(sqlalchemy.Integer,
+                                sqlalchemy.ForeignKey("users.id"))
+    groupid = sqlalchemy.Column(sqlalchemy.Integer,
+                                sqlalchemy.ForeignKey("groups.id"))
+
+
+class Group(cap.models.Base):
+    __tablename__ = "groups"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.String(length=64), unique=True)
+
+    users = sqlalchemy.orm.relationship("User", 
+                                        secondary=UserGroup.__table__)
+
+
+class User(cap.models.Base):
+    __tablename__ = "users"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.String(length=64), unique=True,
+                                 index=True)
+    passhash = sqlalchemy.Column(sqlalchemy.LargeBinary(length=64))
+    _salt = sqlalchemy.Column('salt', sqlalchemy.LargeBinary(length=8),
+                                default=lambda: os.urandom(8))
+
+    groups = sqlalchemy.orm.relationship(Group,
+                                         secondary=UserGroup.__table__)
+
+    @property
+    def salt(self):
+        if not self._salt:
+            self._salt = os.urandom(8)
+        return self._salt
+
+    @property
+    def password(self):
+        raise Exception("Cannot get a password.")
+
+    @password.setter
+    def password(self, value):
+        hash = hashlib.sha256(self.salt)
+        hash.update(value.encode())
+        self.passhash = hash.digest()
 
     def check_password(self, password):
-        return self.password == password
+        hash = hashlib.sha256(self.salt)
+        hash.update(password.encode())
+        challenge_hash = hash.digest()
+        return self.passhash == challenge_hash
 
 
-class RootFactory(object):
+class RootFactory:
     """Root factory for this Pyramid application."""
     __acl__ = [(pyramid.security.Allow, 'g:admins', pyramid.security.ALL_PERMISSIONS),
-                (pyramid.security.Allow, 'g:managers', 'manager'),
-                (pyramid.security.Allow, 'g:managers', 'user'),
-                (pyramid.security.Allow, 'g:users', 'user')]
+                (pyramid.security.Allow, 'g:managers', 'edit'),
+                (pyramid.security.Allow, 'g:managers', 'view'),
+                (pyramid.security.Allow, 'g:users', 'view')]
 
     def __init__(self, request):
         self.request = request
 
 
-USERS = {
-    "admin": User("admin", "admin111", ['admins']),
-    "manager": User("manager", "manager222", ['managers']),
-    "user": User("user", "user333", ['users'])
-}
+class LocationFactory(RootFactory):
+    """ """
+
+    def __getitem__(self, id):
+        """Accessed via "traversal" """
+        location = cap.models.DBSession.query(cap.models.Location).get(id)
+        if location:
+            location.__parent__ = self
+            return location
 
 
-def groupfinder(userid, request):
-    user = USERS.get(userid)
+def get_user(request, user_name):
+    try:
+        return cap.models.DBSession.query(User).filter(User.name==user_name).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+
+def get_this_user(request):
+    user_name= pyramid.security.unauthenticated_userid(request)
+    if user_name:
+        return get_user(request, user_name)
+
+
+def get_groups(user_name, request):    # Yes, user_name first unfortunately.
+    user = get_user(request, user_name)
     if user:
-        return ['g:%s' % g for g in user.groups]
+        return ['g:%s' % g.name for g in user.groups]
 
 
 @pyramid.view.forbidden_view_config()
@@ -60,12 +130,12 @@ def forbidden_view(request):
 def login_view(request):
     if 'submit' in request.POST:
         next = request.params.get('next') or request.route_url('home')
-        login = request.POST.get('login', '')
+        user_name = request.POST.get('login', '')
         passwd = request.POST.get('password', '')
 
-        user = USERS.get(login, None)
+        user = get_user(request, user_name)
         if user and user.check_password(passwd):
-            headers = pyramid.security.remember(request, login)
+            headers = pyramid.security.remember(request, user_name)
             return pyramid.httpexceptions.HTTPFound(location=next, headers=headers)
         else:
             return {'failed': True}
