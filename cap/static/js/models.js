@@ -93,7 +93,12 @@ define(['backbone', 'config'],
         /* Collection of Location objects. */
         Models.Locations = Backbone.Collection.extend({
             url: Config.uri.api.locations,
-            model: Models.Location
+            model: Models.Location,
+            showCapacity: function () {
+                return this.find(function(location) {
+                    return location.get("perm_manage") === true;
+                }) !== undefined;
+            }
         });
 
         Models.Day = Backbone.Model.extend({});

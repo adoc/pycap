@@ -2,13 +2,12 @@
 
 define(['underscore',
         "text!/static/tmpl/locations.html.tmpl",
-        "text!/static/tmpl/locations_short_list.html.tmpl",
         "text!/static/tmpl/toolbar.html.tmpl"],
-    function(_, locationsTemplate,
-            locationsShortlistTemplate,
+    function(_,
+            locationsTemplate,
             toolbarTemplate) {
-        // Pre-render templates
         return {
+            // Pre-render templates
             Locations: _.template(locationsTemplate),
             Toolbar: _.template(toolbarTemplate)
         }

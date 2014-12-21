@@ -10,28 +10,8 @@ import datetime
         <meta name="description" content="Seidner's Shop Capacity App">
         <meta name="author" content="http://github.com/adoc">
         <title>${hasattr(next, 'title') and next.title().strip()+' - ' or ''}SCC Shop Capacity</title>
-        <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
-        <style>
-            /* Sticky footer styles
-            -------------------------------------------------- */
-            html {
-              position: relative;
-              min-height: 100%;
-            }
-            body {
-              /* Margin bottom by footer height */
-              margin-bottom: 80px;
-            }
-            .footer {
-              position: absolute;
-              bottom: 0;
-              width: 100%;
-              /* Set the fixed height of the footer here */
-              height: 80px;
-              background-color: #f5f5f5;
-              padding-top: 16px;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="/static/css/lib/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
     </head>
     <body>
         ${next.body()}

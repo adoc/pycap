@@ -61,8 +61,6 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
             selectedRow: null,
             selectedCol: null,
             changed: false,
-            manage: false,
-            capacity: false,
             onClickRow: function(ev) {
                 /* Simply select a row and update the row with the
                 "info" class.
@@ -127,8 +125,6 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
 
                 this.listenTo(this.locationsModel, "add remove reset sync",
                               _.debounce(this.render));
-                this.listenTo(this.daysModel, "add remove reset",
-                              _.debounce(this.render));
 
                 this.locationsModel.fetch();
                 this.daysModel.fetch();
@@ -146,7 +142,7 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                     self.onRefresh.apply(self, arguments);
                 }
                 this.watchTimer = setInterval(poll, this.watchInterval);
-                poll();
+                //poll();
                 this.toolBarView.refresh_watch = true;
                 this.toolBarView.render();
             },
@@ -159,12 +155,10 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
         });
 
         Views.LocationsManage = Views.Locations.extend({
-            manage: true,
-            capacity: true,
             events: {
                 "click .field": "onClickRow",
                 "click .field > *": function () { return false }, // Do not bubble click event up.
-                "dblclick .field": "onDblClick",
+                "dblclick .editable.field": "onDblClick",
                 "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
                 "focusout input.form-control": "onLeaveField",
                 "keyup input.form-control": "keyupInField"

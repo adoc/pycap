@@ -47,8 +47,7 @@ def init_models(settings, UserModel):
             if self.owner:
                 return [
                     (pyramid.security.Allow, 'g:admins', pyramid.security.ALL_PERMISSIONS),
-                    (pyramid.security.Allow, 'g:managers', 'edit'),
-                    (pyramid.security.Allow, 'g:managers', 'view'),
+                    (pyramid.security.Allow, 'g:managers', pyramid.security.ALL_PERMISSIONS),
                     (pyramid.security.Allow, 'g:users', 'view'),
                     (pyramid.security.Allow, self.owner.name, 'edit')
                 ]

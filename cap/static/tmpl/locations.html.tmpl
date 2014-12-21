@@ -1,44 +1,6 @@
-<style>
-    table#locations_table {
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        cursor: default;
-    }
-
-    table td {
-        height: 51px;
-    }
-
-    .col_capacity {
-        width: 40px;
-    }
-
-    .col_display_name {
-        width: 150px;
-    }
-
-    .col_day_quantity {
-        width: 100px;
-    }
-
-    .field_day_quantity, .field_capacity, .field_display_name {
-        font-size: 18px;
-    }
-
-    .field_day_balance {
-        font-size: 20px;
-    }
-
-    .well, .btn-group, .table {
-      margin-bottom: 0;
-      margin-top: 8px;
-    }
-</style>
-
+<%
+var showCapacity = locationsModel.showCapacity();
+%>
 <div class="well">
     <p style="margin-left: 0px;" id="form_logged_in_as" class="text-primary">&nbsp;</p>
     <p style="margin-left: 0px;" id="form_warning" class="text-warning">&nbsp;</p>
@@ -48,7 +10,7 @@
 <table id="locations_table" class="table table-striped table-bordered">
     <thead>
         <tr>
-        <% if (capacity) { %>
+        <% if (showCapacity) { %>
             <th class="col_capacity">Capacity</th>
         <% } %>
             <th class="col_display_name">Name</th>
@@ -64,12 +26,16 @@
         </tr>
     </thead>
     <tbody>
-      <% locationsModel.each(function(location) { %>
+    <% locationsModel.each(function(location) {
+
+        var permEdit = location.get("perm_edit");
+        var permManage = location.get("perm_manage");
+        %>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
-        <% if (capacity) { %>
-            <td rowspan="1" class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
+        <% if (showCapacity) { %>
+            <td rowspan="1" class="<%-permManage && "editable " || ""%>field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
         <% } %>
-            <td rowspan="1" class="field field_display_name<%-location.get("perm_edit") && " text-success" || ""%>" data-field="display_name"><%-location.get("display_name")%></td>
+            <td rowspan="1" class="<%-permManage && "editable " || ""%>field field_display_name<%-permEdit && " text-success" || ""%>" data-field="display_name"><%-location.get("display_name")%></td>
             <% 
             // First set up the quantity/input fields.
             daysModel.each(function(day, i) {
@@ -81,13 +47,13 @@
                         amount = '';
                     }
                     %>
-                <td class="field field_day_quantity text-primary" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
+                <td class="<%-permEdit && "editable " || ""%>field field_day_quantity text-primary" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
             <% } else { %>
                 <td rowspan="2" class="active"></td>
             <% }}); %>
         </tr>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
-            <td colspan="<%-capacity && 2 || 1%>" style="text-align: right;"><em>Current</em></td>
+            <td colspan="<%-showCapacity && 2 || 1%>" style="text-align: right;"><em>Current</em></td>
             <% 
             // First set up the quantity/input fields.
             daysModel.each(function(day, i) {
@@ -105,6 +71,6 @@
                 <td class="field field_day_balance<%-current<=0 && ' text-danger danger' || ' text-success'%><%-current<=5 && ' text-warning warning' || ''%>" data-field-date="<%-date%>"><em><%-current%></em></td>
             <% }}); %>
         </tr>
-      <% }); %>
+    <% }); %>
     </tbody>
 </table>

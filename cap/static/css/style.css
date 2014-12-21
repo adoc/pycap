@@ -1,0 +1,60 @@
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 80px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 80px;
+  background-color: #f5f5f5;
+  padding-top: 16px;
+}
+
+table#locations_table {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+table td {
+    height: 51px;
+}
+
+.col_capacity {
+    width: 40px;
+}
+
+.col_display_name {
+    width: 150px;
+}
+
+.col_day_quantity {
+    width: 100px;
+}
+
+.field_day_quantity, .field_capacity, .field_display_name {
+    font-size: 18px;
+}
+
+.field_day_balance {
+    font-size: 20px;
+}
+
+.well, .btn-group, .table {
+  margin-bottom: 0;
+  margin-top: 8px;
+}

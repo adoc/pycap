@@ -6,7 +6,7 @@ View Locations
 </%def>
 <%def name="scripts()">
     require(['jquery', 'views'], function($, Views) {
-        var view = new Views.Locations();
+        var view = new Views.LocationsManage();
         $("#container").html(view.$el);
 
         view.watch();
