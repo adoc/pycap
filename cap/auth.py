@@ -85,7 +85,11 @@ class RootFactory:
         self.request = request
 
 
-class LocationFactory(RootFactory):
+class ApiFactory(RootFactory):
+    pass
+
+
+class LocationFactory(ApiFactory):
     """ """
 
     def __getitem__(self, id):
@@ -117,12 +121,22 @@ def get_groups(user_name, request):    # Yes, user_name first unfortunately.
 
 @pyramid.view.forbidden_view_config()
 def forbidden_view(request):
+    """Return HTTPUnauthorized when user is logged in but unauthorized,
+    redirect to 'login' route if no user is logged in.
+    """
     # do not allow a user to login if they are already logged in
     if pyramid.security.authenticated_userid(request):
-        return pyramid.httpexceptions.HTTPForbidden()
+        return pyramid.httpexceptions.HTTPUnauthorized()
 
     return pyramid.httpexceptions.HTTPFound(location=
                 request.route_url('login', _query=(('next', request.path),)))
+
+
+@pyramid.view.forbidden_view_config(containment=ApiFactory)
+def api_forbidden_view(request):
+    """Return HTTPUnauthorized when unauthorized API request is
+    made."""
+    return pyramid.httpexceptions.HTTPUnauthorized()
 
 
 @pyramid.view.view_config(route_name='login',

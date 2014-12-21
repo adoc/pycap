@@ -69,7 +69,7 @@
         <% if (capacity) { %>
             <td rowspan="1" class="field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
         <% } %>
-            <td rowspan="1" class="field field_display_name<%-location.get("perm_edit") && " text-primary" || ""%>" data-field="display_name"><%-location.get("display_name")%></td>
+            <td rowspan="1" class="field field_display_name<%-location.get("perm_edit") && " text-success" || ""%>" data-field="display_name"><%-location.get("display_name")%></td>
             <% 
             // First set up the quantity/input fields.
             daysModel.each(function(day, i) {

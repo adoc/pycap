@@ -37,25 +37,24 @@ def main(global_config, **settings):
 
     # HTML view routes.
     config.add_route('home', '/')
-    config.add_route('locations_manage', '/manage')
 
     # Auth routes.
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
 
     # API routes.
-    config.add_route('api_location_test', '/api/v1/location/{id}',
-                    factory=cap.auth.LocationFactory, traverse="/{id}")
-
-    config.add_route('api_days', '/api/v1/days')
+    config.add_route('api_days', '/api/v1/days',
+                        factory=cap.auth.ApiFactory)
     config.add_route('api_locations_get', '/api/v1/locations',
-                        request_method=("GET",), )
-    config.add_route('api_locations_post', '/api/v1/locations',
-                        request_method=("POST",))
-    config.add_route('api_locations_get_byid', '/api/v1/locations/{id}',
-                        request_method=("GET",), factory=cap.auth.LocationFactory, traverse="/{id}")
-    config.add_route('api_locations_put', '/api/v1/locations/{id}',
-                        request_method=("PUT",), factory=cap.auth.LocationFactory, traverse="/{id}")
+                        request_method=("GET",),
+                        factory=cap.auth.ApiFactory)
+    config.add_route('api_location_get', '/api/v1/locations/{id}',
+                        request_method=("GET",),
+                        factory=cap.auth.LocationFactory, traverse="/{id}")
+    config.add_route('api_locations_update', '/api/v1/locations/{id}',
+                        request_method=("PUT",),
+                        factory=cap.auth.LocationFactory, traverse="/{id}")
+    # Current no POST (Cannot add Locations.)
 
     config.scan()
     return config.make_wsgi_app()

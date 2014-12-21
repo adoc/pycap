@@ -23,13 +23,24 @@ def api_locations_get(request):
                         .all())
 
 
-@pyramid.view.view_config(route_name="api_locations_post", renderer="json")
-def api_locations_post(request, location=cap.models.Location()):
+@pyramid.view.view_config(route_name="api_location_get", renderer="json",
+                            permission="view")
+def api_location_get(request):
+    return (cap.models.DBSession
+                .query(cap.models.Location)
+                    .get(int(request.matchdict['id'])))
+
+
+@pyramid.view.view_config(route_name="api_locations_update", renderer="json",
+                            permission="edit")
+def api_locations_update(request):
     """
     """
     date_format = request.registry.settings['date_format']
     local_tz = pytz.timezone(request.registry.settings['local_timezone'])
     
+    location = request.context or cap.models.Location()
+
     # TODO: validate request params.
     params = request.json_body
 
@@ -69,45 +80,17 @@ def api_locations_post(request, location=cap.models.Location()):
     return True
 
 
-@pyramid.view.view_config(route_name="api_locations_put", renderer="json")
-def api_locations_put(request):
-    return api_locations_post(request, location=api_locations_get_byid(request))
-
-
-@pyramid.view.view_config(route_name="api_locations_get_byid", renderer="json")
-def api_locations_get_byid(request):
-    return (cap.models.DBSession
-                .query(cap.models.Location)
-                    .get(int(request.matchdict['id'])))
-
-
-@pyramid.view.view_config(route_name="api_days", renderer="json")
+@pyramid.view.view_config(route_name="api_days", renderer="json",
+                            permission="view")
 def api_days(request):
     return cap.util.get_days(request)
 
 
-@pyramid.view.view_config(route_name="api_location_test", renderer="json",
-                            permission="edit")
-def api_location_test(request):
-    # print(request.context)
-    return request.context
-
-
 # HTML Views
 
-@pyramid.view.view_config(route_name="locations_manage",
-            permission='edit',
-            renderer="templates/locations.manage.html.mako")
-def locations_manage(request):
-    """Shows a given shop and gives a field for entering number of cars
-    for the next 7 days.
-    """
-    return {}
-
-
 @pyramid.view.view_config(route_name="home",
-            permission='view',
-            renderer="templates/locations.view.html.mako")
+            renderer="templates/home.html.mako",
+            permission='view')
 def home(request):
     """Shows a given shop and gives a field for entering number of cars
     for the next 7 days.
