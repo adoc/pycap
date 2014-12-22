@@ -102,12 +102,6 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 this.toolBarView.render();
                 return this;
             },
-            conditionalRender: function () {
-                if (this.locationsModel.length > 0 &&
-                        this.daysModel.length > 0) {
-                    this.render();
-                }
-            },
             initialize: function() {
                 var self = this;
 
