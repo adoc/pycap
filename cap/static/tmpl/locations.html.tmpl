@@ -1,6 +1,47 @@
 <%
 var showCapacity = locationsModel.showCapacity();
 %>
+
+<% function availableRow(daysModel, location) { %>
+    <% 
+    // First set up the quantity/input fields.
+    daysModel.each(function(day, i) {
+        if (day.get("day_num") != 0) {
+            var date=day.get("date"),
+                day_quantity = location.getDayQuantity(date),
+                capacity = location.get("capacity"),
+                amount = day_quantity.get("amount"),
+                current;
+            if (amount < 0) { amount = 0; }
+            current = capacity - amount;
+            if (current < 0) { current = 0; }
+            %>
+        <td class="field field_day_balance<%-current<=0 && ' text-danger danger' || ' text-success'%><%-current<=5 && ' text-warning warning' || ''%>" data-field-date="<%-date%>"><em><%-current%></em></td>
+    <% } else { %>
+        <td rowspan="1" class="active"></td>
+    <%  }
+    }); %>
+<% } %>
+
+<% function editableRow(daysModel, location, permEdit, permManage) { %>
+    <%
+    // First set up the quantity/input fields.
+    daysModel.each(function(day, i) {
+        if (day.get("day_num") != 0) {
+            var date=day.get("date"),
+                day_quantity = location.getDayQuantity(date),
+                amount = day_quantity.get("amount");
+            if (amount < 0) {
+                amount = '';
+            }
+            %>
+        <td class="<%-permEdit && "editable " || ""%>field field_day_quantity text-primary" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
+        <% } else { %>
+        <td rowspan="1" class="active"></td>
+    <% }}); %>
+<% } %>
+
+
 <div class="well">
     <p style="margin-left: 0px;" id="form_logged_in_as" class="text-primary">&nbsp;</p>
     <p style="margin-left: 0px;" id="form_warning" class="text-warning">&nbsp;</p>
@@ -10,6 +51,7 @@ var showCapacity = locationsModel.showCapacity();
 <table id="locations_table" class="table table-striped table-bordered">
     <thead>
         <tr>
+            <th class="col_updated" style="white-space: nowrap;">Last Updated</th>
         <% if (showCapacity) { %>
             <th class="col_capacity">Capacity</th>
         <% } %>
@@ -27,50 +69,36 @@ var showCapacity = locationsModel.showCapacity();
     </thead>
     <tbody>
     <% locationsModel.each(function(location) {
-
-        var permEdit = location.get("perm_edit");
-        var permManage = location.get("perm_manage");
+        var permEdit = location.get("perm_edit"),
+            permManage = location.get("perm_manage"),
+            showEdit = permEdit || permManage;
         %>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
+            <td rowspan="1"><strong><%-location.get("last_updated_date")%></strong><br /><%-location.get("last_updated_time")%></td>
         <% if (showCapacity) { %>
             <td rowspan="1" class="<%-permManage && "editable " || ""%>field field_capacity" data-field="capacity"><%-location.get("capacity")%></td>
         <% } %>
-            <td rowspan="1" class="<%-permManage && "editable " || ""%>field field_display_name<%-permEdit && " text-success" || ""%>" data-field="display_name"><%-location.get("display_name")%></td>
-            <% 
-            // First set up the quantity/input fields.
-            daysModel.each(function(day, i) {
-                if (day.get("day_num") != 0) {
-                    var date=day.get("date"),
-                        day_quantity = location.getDayQuantity(date),
-                        amount = day_quantity.get("amount");
-                    if (amount < 0) {
-                        amount = '';
-                    }
-                    %>
-                <td class="<%-permEdit && "editable " || ""%>field field_day_quantity text-primary" data-field="day_quantity" data-field-date="<%-date%>"><%-amount%></td>
+            <td rowspan="1" class="<%-permManage && "editable " || ""%>field field_display_name<%-permEdit && " text-success" || ""%>" data-field="display_name"><%-location.get("display_name")%>
+            <div class="clearfix"></div>
+            <% if (!showEdit) { %>
+            <div style="margin: 0; font-size: 14px; float: right"><em>Available</em></div>
             <% } else { %>
-                <td rowspan="2" class="active"></td>
-            <% }}); %>
+            <div style="margin: 0; font-size: 14px; float: right; color: #333;"><em>Count</em></div>
+            <% } %>
+            </td>
+            <% if (showEdit) { %>
+            <% editableRow(daysModel, location, permEdit, permManage) %>
+            <% } else { %>
+            <% availableRow(daysModel, location) %>
+            <% } %>
+
         </tr>
+        <% if (showEdit) { %>
         <tr class="data_row" data-location-id="<%-location.get("id")%>">
-            <td colspan="<%-showCapacity && 2 || 1%>" style="text-align: right;"><em>Current</em></td>
-            <% 
-            // First set up the quantity/input fields.
-            daysModel.each(function(day, i) {
-                if (day.get("day_num") != 0) {
-                    var date=day.get("date"),
-                        day_quantity = location.getDayQuantity(date),
-                        capacity = location.get("capacity"),
-                        amount = day_quantity.get("amount"),
-                        current;
-                    if (amount < 0) {
-                        amount = 0;
-                    }
-                    current = capacity - amount;
-                    %>
-                <td class="field field_day_balance<%-current<=0 && ' text-danger danger' || ' text-success'%><%-current<=5 && ' text-warning warning' || ''%>" data-field-date="<%-date%>"><em><%-current%></em></td>
-            <% }}); %>
+            <td colspan="<%-showCapacity && 3 || 2%>" style="text-align: right;"><em>Available</em></td>
+            <% availableRow(daysModel, location) %>
         </tr>
+        <% } %>
     <% }); %>
     </tbody>
 </table>

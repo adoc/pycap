@@ -32,6 +32,11 @@ table#locations_table {
 
 table td {
     height: 51px;
+    white-space: nowrap;
+}
+
+table th {
+  white-space: nowrap;
 }
 
 .col_capacity {

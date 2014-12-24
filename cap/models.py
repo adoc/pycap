@@ -2,6 +2,7 @@ import datetime
 import sqlalchemy
 import sqlalchemy.types
 import sqlalchemy.orm
+import sqlalchemy.event
 import sqlalchemy.ext.declarative
 import sqlalchemy.ext.hybrid
 import zope.sqlalchemy
@@ -26,6 +27,20 @@ def init_models(settings, UserModel):
     global LocationDayQuantity
 
     date_format = settings['date_format']
+    time_format = settings['time_format']
+
+    def formattime(dt):
+        return dt.strftime(time_format).lstrip("0")
+
+    def formatdate(dt):
+        return dt.strftime(date_format).lstrip("0")
+
+    def formatdatetime(dt):
+        return ' '.join([formatdate(dt), formattime(dt)])
+
+    def now():
+        return cap.util.get_localized_datetime(settings)
+
 
     class EpochDays(sqlalchemy.types.TypeDecorator):
         """
@@ -40,6 +55,17 @@ def init_models(settings, UserModel):
 
         def process_result_value(self, value, dialect):
             return self.epoch + datetime.timedelta(days=value)
+
+    class EpochSeconds(sqlalchemy.types.TypeDecorator):
+        impl = sqlalchemy.types.Integer
+        epoch = datetime.datetime(1970, 1, 1, hour=0, minute=0, second=0,
+                            tzinfo=pytz.timezone(settings['local_timezone']))
+
+        def process_bind_param(self, value, dialect):
+            return (value - self.epoch).total_seconds()
+
+        def process_result_value(self, value, dialect):
+            return self.epoch + datetime.timedelta(seconds=value)
 
     class Location(Base):
         @property
@@ -56,6 +82,8 @@ def init_models(settings, UserModel):
 
         __tablename__ = 'locations'
         id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+        ts_updated_day_quantities = sqlalchemy.Column('epoch_updated', EpochSeconds,
+                                        default=now)
         display_name = sqlalchemy.Column(sqlalchemy.String(64), index=True,
                                             unique=True)
         capacity = sqlalchemy.Column(sqlalchemy.Integer, default=0)
@@ -82,6 +110,8 @@ def init_models(settings, UserModel):
         def __json__(self, request):
             return {
                 'id': self.id,
+                'last_updated_date': formatdate(self.ts_updated_day_quantities),
+                'last_updated_time': formattime(self.ts_updated_day_quantities),
                 'display_name': self.display_name,
                 'capacity': self.capacity,
                 'day_quantities': (
@@ -110,3 +140,15 @@ def init_models(settings, UserModel):
                 'date': self.date.strftime(date_format),
                 'amount': self.amount
             }
+
+    #@sqlalchemy.event.listens_for(LocationDayQuantity, 'before_update')
+    #def listener(mapper, connection, target):
+    #    target.location.ts_updated_day_quantities = now()
+
+    @sqlalchemy.event.listens_for(DBSession, "before_flush")
+    def before_flush(session, flush_context, instances):
+        for obj in session.new.union(session.dirty):
+            if isinstance(obj, LocationDayQuantity):
+                # Update the related Location object's "last updated"
+                #   field.
+                obj.location.ts_updated_day_quantities = now()

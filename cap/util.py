@@ -2,12 +2,17 @@ import datetime
 import pytz
 
 
-def get_localized_datetime(request):
+def get_localized_datetime(request_or_settings):
     """Get the current UTC and return the localized datetime based on
     the timezone set with "local_timezone" in the config file.
     TODO: Ultimately this will use the location's timezone.
     """
-    local_tz = pytz.timezone(request.registry.settings['local_timezone'])
+    if hasattr(request_or_settings, 'registry'):
+        settings = request_or_settings.registry.settings
+    else:
+        settings = request_or_settings
+
+    local_tz = pytz.timezone(settings['local_timezone'])
     now_utc = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     return now_utc.astimezone(local_tz)
 
@@ -16,6 +21,7 @@ def get_utc_datetime(request, dt):
     local_tz = pytz.timezone(request.registry.settings['local_timezone'])
     dt = dt.replace(tzinfo=local_tz)
     return dt.astimezone(pytz.utc)
+
 
 def g(dt):
     local_tz = pytz.timezone("US/Pacific")

@@ -71,9 +71,12 @@ def api_locations_update(request):
                     except sqlalchemy.orm.exc.NoResultFound:
                         day_quantity_record = cap.models.LocationDayQuantity()
 
-                    day_quantity_record.location = location
-                    day_quantity_record.date = date
-                    day_quantity_record.amount = amount
+                    # Only update the day_quantity_record if the set
+                    #   amount is different.
+                    if day_quantity_record.amount != amount:
+                        day_quantity_record.location = location
+                        day_quantity_record.date = date
+                        day_quantity_record.amount = amount
 
     cap.models.DBSession.add(location)
 
