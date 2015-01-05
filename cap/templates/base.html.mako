@@ -10,8 +10,8 @@ import datetime
         <meta name="description" content="Seidner's Shop Capacity App">
         <meta name="author" content="http://github.com/adoc">
         <title>${hasattr(next, 'title') and next.title().strip() + ' - ' or ''}SCC Shop Capacity</title>
-        <link rel="stylesheet" type="text/css" href="/static/css/lib/bootstrap.min.css" />
-        <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="${request.sstatic_url('static_dir', 'css/lib/bootstrap.min.css')}" />
+        <link rel="stylesheet" type="text/css" href="${request.sstatic_url('static_dir', 'css/style.css')}" />
     </head>
     <body>
         ${next.body()}
@@ -20,8 +20,11 @@ import datetime
                 <p class="text-muted">&copy; ${datetime.date.today().year} Seidner's Collision Centers.</p>
             </div>
         </footer>
-        <script type="text/javascript" src="/static/js/lib/require.min.js"></script>
-        <script type="text/javascript" src="/static/js/common.js"></script>
+        <script type="text/javascript">
+            window.static_uri = ${json.dumps(request.sstatic_url("static_dir", ""))|n};
+        </script>
+        <script type="text/javascript" src="${request.sstatic_url('static_dir', 'js/lib/require.min.js')}"></script>
+        <script type="text/javascript" src="${request.sstatic_url('static_dir', 'js/common.js')}"></script>
     %if hasattr(next, "scripts"):
         <script type="text/javascript">
             ${next.scripts()}

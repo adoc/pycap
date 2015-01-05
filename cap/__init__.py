@@ -1,3 +1,4 @@
+import os
 import pyramid.config
 import pyramid.authentication
 import pyramid.authorization
@@ -6,7 +7,6 @@ import sqlalchemy
 import cap.models
 import cap.validators
 import cap.auth
-
 
 
 def main(global_config, **settings):
@@ -30,9 +30,16 @@ def main(global_config, **settings):
     cap.models.init_models(settings, cap.auth.User)
     cap.validators.init_schema(settings)
 
+    def sstatic_url(request, path_key, *path):
+        """Serve a static URL from a path in the settings (ini).
+        """
+        return request.static_url(os.path.join(settings[path_key], *path))
+
+    config.add_request_method(sstatic_url)
+
     config.add_request_method(cap.auth.get_this_user, 'this_user', reify=True)
 
-    config.add_static_view('static', 'static',
+    config.add_static_view(name='static', path=settings['static_dir'],
                             cache_max_age=int(settings['cache_max_age']))
 
     # If updating routes, make sure to update the `api_get_routes` view

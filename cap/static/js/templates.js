@@ -1,9 +1,9 @@
 "use strict";
 
 define(['underscore',
-        "text!/static/tmpl/locations.html.tmpl",
-        "text!/static/tmpl/users.html.tmpl",
-        "text!/static/tmpl/toolbar.html.tmpl"],
+        "text!"+window.static_uri+"tmpl/locations.html.tmpl",
+        "text!"+window.static_uri+"tmpl/users.html.tmpl",
+        "text!"+window.static_uri+"tmpl/toolbar.html.tmpl"],
     function(_,
             locationsTemplate,
             usersTemplate,
