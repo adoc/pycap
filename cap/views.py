@@ -3,18 +3,23 @@
 
 import collections
 import datetime
+import json
 import pytz
 import sqlalchemy.orm.exc
 
 import pyramid.view
 import pyramid.security
 
+import cap.auth
 import cap.util
 import cap.models
+import cap.validators
 
+
+from pprint import pprint
 
 # API views
-
+#   Locations
 @pyramid.view.view_config(route_name="api_locations_get", renderer="json",
                             permission="view")
 def api_locations_get(request):
@@ -31,9 +36,9 @@ def api_location_get(request):
                     .get(int(request.matchdict['id'])))
 
 
-@pyramid.view.view_config(route_name="api_locations_update", renderer="json",
+@pyramid.view.view_config(route_name="api_location_update", renderer="json",
                             permission="edit")
-def api_locations_update(request):
+def api_location_update(request):
     """
     """
     date_format = request.registry.settings['date_format']
@@ -42,7 +47,7 @@ def api_locations_update(request):
     location = request.context or cap.models.Location()
 
     # TODO: validate request params.
-    params = request.json_body
+    params = cap.validators.LocationSchema().to_python(request.json_body)
 
     for key, val in params.items():
         if key == 'display_name': # Location `display_name` has been updated.
@@ -89,6 +94,43 @@ def api_days(request):
     return cap.util.get_days(request)
 
 
+#   Users
+@pyramid.view.view_config(route_name="api_users_get", renderer="json",
+                            permission="admin")
+def api_users_get(request):
+    return (cap.models.DBSession
+                    .query(cap.auth.User)
+                        .all())
+
+
+@pyramid.view.view_config(route_name="api_user_get", renderer="json",
+                            permission="admin")
+def api_location_get(request):
+    return request.context
+
+
+@pyramid.view.view_config(route_name="api_user_update", renderer="json",
+                            permission="admin")
+def api_user_update(request):
+    """
+    """
+
+    user = request.context
+    params = cap.validators.UserSchema().to_python(request.json_body)
+
+    name = params.get("name")
+    if name:
+        user.name = name
+
+    password = params.get("password")
+    if password:
+        user.password = password
+
+    cap.models.DBSession.add(user)
+
+    return True
+
+
 # HTML Views
 
 @pyramid.view.view_config(route_name="home",
@@ -97,5 +139,15 @@ def api_days(request):
 def home(request):
     """Shows a given shop and gives a field for entering number of cars
     for the next 7 days.
+    """
+    return {'perm_admin':json.dumps(isinstance(
+                            request.has_permission('admin', request.context),
+                            pyramid.security.ACLAllowed))}
+
+@pyramid.view.view_config(route_name="users",
+            renderer="templates/users.html.mako",
+            permission='admin')
+def users(request):
+    """
     """
     return {}

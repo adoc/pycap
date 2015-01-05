@@ -7,10 +7,10 @@ define([], function () {
         home: "/",
         login: "/login",
         logout: "/logout",
-        locations_manage: "/manage",
         api: {
             days: "/api/v1/days",
-            locations: "/api/v1/locations"  // RESTful.
+            locations: "/api/v1/locations",
+            users: "/api/v1/users"
         }
     };
 

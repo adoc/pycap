@@ -2,13 +2,14 @@
 <div id="container" class="container">
 </div>
 <%def name="title()">
-View Locations
+Locations
 </%def>
 <%def name="scripts()">
     require(['jquery', 'views'], function($, Views) {
-        var view = new Views.LocationsManage();
-        $("#container").html(view.$el);
-
-        view.watch();
+        var toolBarView = new Views.Toolbar({users: ${perm_admin}}),
+            locationsView = new Views.LocationsManage({
+                toolBarView: toolBarView});
+        $("#container").html(locationsView.$el);
+        locationsView.watch();
     });
 </%def>

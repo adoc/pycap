@@ -5,6 +5,8 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
         var Views = {};
 
         Views.Toolbar = Backbone.View.extend({
+            users: false,
+            locations: false,
             home: true,
             logout: true,
             refresh: false,
@@ -17,8 +19,13 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 "click #logout_button": "onLogout",
                 "mousedown #refresh_button": "onMouseDownRefresh",
                 "contextmenu #refresh_button": function() { return false; },
+                "click #users_button": "onUsers",
+                "click #locations_button": "onLocations",
                 "click #save_button": "onSave",
                 "click #help_button": "onHelp"
+            },
+            initialize: function(attrs) {
+                _.extend(this, attrs);
             },
             onHome: function () {
                 window.location.href = Config.uri.home;
@@ -38,6 +45,12 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
             },
             onWatch: function () {
                 throw "No onWatch applied to this toolbar.";
+            },
+            onUsers: function () {
+                window.location.href = "/users";
+            },
+            onLocations: function () {
+                window.location.href = "/";
             },
             onSave: function () {
                 throw "No onSave applied to this toolbar.";
@@ -102,10 +115,11 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 this.toolBarView.render();
                 return this;
             },
-            initialize: function() {
+            initialize: function(attrs) {
+                _.extend(this, attrs);
                 var self = this;
 
-                this.toolBarView = new Views.Toolbar();
+                //this.toolBarView = new Views.Toolbar();
                 this.toolBarView.refresh = true;
                 this.toolBarView.onRefresh = function () {
                     self.onRefresh.apply(self, arguments);
@@ -191,13 +205,14 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 // Edit the cell.
                 var cell = $(ev.target),
                     row = cell.parent(),
-                    location_id = row.attr("data-location-id");
+                    location_id = row.attr("data-location-id"),
+                    input;
 
                 if (cell.hasClass("field_capacity") ||
                     cell.hasClass("field_display_name") ||
                     cell.hasClass("field_day_quantity")) {
                     this.editingCell = cell.html();
-                    var input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
+                    input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
                     cell.html(input);
 
                     if (this.watchTimer) {
@@ -269,14 +284,133 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 var self = this;
                 Views.Locations.prototype.initialize.apply(this, arguments)
                 this.toolBarView.edit = false;
-                this.toolBarView.locations = true;
                 this.toolBarView.save = true;
                 this.toolBarView.onSave = function () {
                     self.onSave.apply(self, arguments);
                 }
-                //this.toolBarView.help = true;
+                // this.toolBarView.locations = true;
+                // this.toolBarView.help = true;
             }
         });
+
+        Views.UsersManage = Backbone.View.extend({
+            events: {
+                "dblclick .editable.field": "onDblClick",
+                "dblclick .field > *": function() { return false; }, // Do not bubble dblclick event up.
+                "focusout input.form-control": "onLeaveField",
+                "keyup input.form-control": "keyupInField"
+            },
+            initialize: function(attrs) {
+                _.extend(this, attrs);
+                var self = this;
+
+                this.toolBarView.save = true;
+                this.toolBarView.onSave = function () {
+                    self.onSave.apply(self, arguments);
+                }
+
+                this.usersModel = new Models.Users();
+                this.listenTo(this.usersModel, "add remove reset sync",
+                              _.debounce(this.render));
+                this.usersModel.fetch();
+            },
+            onDblClick: function (ev) {
+                // Edit the cell.
+                var cell = $(ev.target),
+                    row = cell.parent(),
+                    user_id = row.attr("data-user-id"),
+                    input, input_passconfirm;
+
+                if (cell.hasClass("field_name")) {
+                    this.editingCell = cell.html();
+                    input = $('<input class="form-control" value="'+cell.html()+'" type="text" />');
+                    cell.html(input);
+                } else if (cell.hasClass("field_password")) {
+                    this.editingCell = cell.html();
+                    input = $('<input class="form-control" placeholder="Password" type="text" />');
+                    cell.html(input);
+                } else if (cell.hasClass("field_password_confirm")) {
+                    this.editingCell = cell.html();
+
+                }
+
+                input.focus();
+                input.select();
+                return false;
+            },
+            keyupInField: function (ev) {
+                if (ev.which == 13) {
+                    $(ev.target).blur();
+                    ev.preventDefault();
+                }
+            },
+            onLeaveField: function (ev) {
+                var field = $(ev.target),
+                    value = field.val(),
+                    cell = field.parent(),
+                    row = cell.parent(),
+                    field_name = cell.attr("data-field"),
+                    user_id = row.attr("data-user-id"),
+                    user = this.usersModel.get(user_id),
+                    model,
+                    input;
+
+                if (field_name === "name") {
+                    model = user.set(field_name, value, {validate: true});
+                    value = model.get(field_name);
+                    cell.html(value);
+                } else if (field_name === "password") {
+                    model = user.set(field_name, value, {validate: true});
+                    if (model) {
+                        input = $('<input class="form-control" placeholder="Confirm Password" type="text" />');
+                        cell.attr("data-field", "password_confirm");
+                        cell.html(input);
+                        input.focus();
+                        input.select();
+                        return false; // Do not process the field further.
+                    }
+                } else if (field_name === "password_confirm") {
+                    user.set(field_name, value, {validate: true});
+                    cell.attr("data-field", "password");
+                    cell.html(this.editingCell); // Revert to original value.
+                }
+
+                if (user.validationError) {
+                    cell.html(this.editingCell); // Revert to original value.
+                    cell.addClass("danger");
+                    $("#form_error").html(user.validationError);
+                    setTimeout(function () {
+                        $("#form_error").html("&nbsp;");
+                        cell.removeClass("danger");
+                    }, 3000);
+                } else if (user.hasChanged()) {
+                    cell.addClass("success");
+                    $(window).bind('beforeunload', function(){
+                        return 'You have unsaved changes.';
+                    });
+                    this.toolBarView.save_warn = true;
+                    this.toolBarView.render();
+                    $("#form_warning").html("Form is unsaved.");
+                }
+            },
+            onSave: function (ev) {
+                this.usersModel.each(function (user) {
+                    if (user.hasChanged()) {
+                        user.save();
+                    }
+                });
+                this.toolBarView.save_warn = false;
+                this.toolBarView.render();
+                $(window).unbind('beforeunload');
+            },
+            render: function() {
+                this.$el.html(Templates.Users(this));
+                this.toolBarView.setElement($("#toolbar"));
+                this.toolBarView.render();
+                return this;
+            }
+        });
+
 
         return Views;
     }

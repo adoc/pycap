@@ -73,6 +73,13 @@ class User(cap.models.Base):
         challenge_hash = hash.digest()
         return self.passhash == challenge_hash
 
+    def __json__(self, request):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'locations': [location.display_name for location in self.locations]
+        }
+
 
 class RootFactory:
     """Root factory for this Pyramid application."""
@@ -87,6 +94,19 @@ class RootFactory:
 
 class ApiFactory(RootFactory):
     pass
+
+
+class UsersFactory(ApiFactory):
+    """
+    """
+
+    def __getitem__(self, id):
+        """
+        """
+        user = cap.models.DBSession.query(User).get(id)
+        if user:
+            user.__parent__ = self
+            return user
 
 
 class LocationFactory(ApiFactory):

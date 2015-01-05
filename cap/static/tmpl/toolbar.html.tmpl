@@ -1,3 +1,4 @@
+<div class="btn-group">
 <% if (refresh === true) { %>
     <button id="refresh_button" type="button" title="Left click to refresh data. Right click to toggle data watch." class="btn <%-refresh_watch && "btn-success" || "btn-default"%>" aria-label="Left Align">
         <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
@@ -6,6 +7,18 @@
 <% if (save === true) { %>
     <button id="save_button" type="button" title="Save to server." class="btn <%-save_warn && "btn-warning" || "btn-default"%>" aria-label="Right Align">
         <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+    </button>
+<% } %>
+</div>
+<div class="btn-group">
+<% if (locations === true) { %>
+    <button id="locations_button" type="button" title="Locations." class="btn btn-default" aria-label="Left Align">
+        <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
+    </button>
+<% } %>
+<% if (users === true) { %>
+    <button id="users_button" type="button" title="Users Administration." class="btn btn-default" aria-label="Left Align">
+        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
     </button>
 <% } %>
 <% if (help === true) { %>
@@ -18,3 +31,4 @@
         <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
     </button>
 <% } %>
+</div>

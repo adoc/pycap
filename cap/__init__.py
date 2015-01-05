@@ -4,7 +4,9 @@ import pyramid.authorization
 import sqlalchemy
 
 import cap.models
+import cap.validators
 import cap.auth
+
 
 
 def main(global_config, **settings):
@@ -26,6 +28,7 @@ def main(global_config, **settings):
     cap.models.DBSession.configure(bind=engine)
     cap.models.Base.metadata.bind = engine
     cap.models.init_models(settings, cap.auth.User)
+    cap.validators.init_schema(settings)
 
     config.add_request_method(cap.auth.get_this_user, 'this_user', reify=True)
 
@@ -36,13 +39,15 @@ def main(global_config, **settings):
     #   as well.
 
     # HTML view routes.
-    config.add_route('home', '/')
+    config.add_route('home', '/', factory=cap.auth.RootFactory)
+    config.add_route('users', '/users', factory=cap.auth.RootFactory)
 
     # Auth routes.
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
 
     # API routes.
+    #   Locations
     config.add_route('api_days', '/api/v1/days',
                         factory=cap.auth.ApiFactory)
     config.add_route('api_locations_get', '/api/v1/locations',
@@ -51,10 +56,21 @@ def main(global_config, **settings):
     config.add_route('api_location_get', '/api/v1/locations/{id}',
                         request_method=("GET",),
                         factory=cap.auth.LocationFactory, traverse="/{id}")
-    config.add_route('api_locations_update', '/api/v1/locations/{id}',
+    config.add_route('api_location_update', '/api/v1/locations/{id}',
                         request_method=("PUT",),
                         factory=cap.auth.LocationFactory, traverse="/{id}")
     # Current no POST (Cannot add Locations.)
+    
+    #   Users
+    config.add_route('api_users_get', '/api/v1/users',
+                        request_method=("GET",),
+                        factory=cap.auth.UsersFactory)
+    config.add_route('api_user_get', '/api/v1/users/{id}',
+                        request_method=("GET",),
+                        factory=cap.auth.UsersFactory, traverse="/{id}")
+    config.add_route('api_user_update', '/api/v1/users/{id}',
+                        request_method=("PUT",),
+                        factory=cap.auth.UsersFactory, traverse="/{id}")
 
     config.scan()
     return config.make_wsgi_app()

@@ -141,10 +141,6 @@ def init_models(settings, UserModel):
                 'amount': self.amount
             }
 
-    #@sqlalchemy.event.listens_for(LocationDayQuantity, 'before_update')
-    #def listener(mapper, connection, target):
-    #    target.location.ts_updated_day_quantities = now()
-
     @sqlalchemy.event.listens_for(DBSession, "before_flush")
     def before_flush(session, flush_context, instances):
         for obj in session.new.union(session.dirty):

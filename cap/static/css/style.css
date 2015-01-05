@@ -20,7 +20,8 @@ body {
   padding-top: 16px;
 }
 
-table#locations_table {
+table#locations_table,
+table#users_table {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -51,7 +52,17 @@ table th {
     width: 100px;
 }
 
-.field_day_quantity, .field_capacity, .field_display_name {
+.col_username {
+    width: 300px;
+}
+
+.col_userpass {
+    width: 500px;
+}
+
+.field_day_quantity,
+.field_capacity,
+.field_display_name {
     font-size: 18px;
 }
 
