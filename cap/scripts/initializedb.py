@@ -30,6 +30,10 @@ def main(argv=sys.argv):
     setup_logging(config_uri)
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
+
+    if engine.name == 'postgres':
+        cap.models.Base.metadata.schema = "client"
+
     cap.models.DBSession.configure(bind=engine)
     cap.models.init_models(settings, cap.auth.User)
     cap.models.Base.metadata.drop_all(engine)
