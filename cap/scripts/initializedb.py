@@ -31,7 +31,7 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
 
-    if engine.name == 'postgres':
+    if engine.name == 'postgresql':
         cap.models.Base.metadata.schema = "client"
 
     cap.models.DBSession.configure(bind=engine)

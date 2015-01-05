@@ -22,7 +22,7 @@ requires = [
     ]
 
 setup(name='cap',
-      version='0.1',
+      version='0.3',
       description='cap',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[

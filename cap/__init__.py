@@ -26,7 +26,7 @@ def main(global_config, **settings):
 
     engine = sqlalchemy.engine_from_config(settings, 'sqlalchemy.')
 
-    if engine.name == 'postgres':
+    if engine.name == 'postgresql':
         cap.models.Base.metadata.schema = "client"
 
     cap.models.DBSession.configure(bind=engine)
