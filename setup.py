@@ -18,11 +18,12 @@ requires = [
     'transaction',
     'zope.sqlalchemy',
     'waitress',
-    'pytz'
+    'pytz',
+    'uwsgi',
     ]
 
 setup(name='cap',
-      version='0.3',
+      version='0.3.1',
       description='cap',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
