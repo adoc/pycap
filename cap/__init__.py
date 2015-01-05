@@ -25,6 +25,10 @@ def main(global_config, **settings):
                         root_factory=cap.auth.RootFactory)
 
     engine = sqlalchemy.engine_from_config(settings, 'sqlalchemy.')
+
+    if engine.name == 'postgres':
+        cap.models.Base.metadata.schema = "client"
+
     cap.models.DBSession.configure(bind=engine)
     cap.models.Base.metadata.bind = engine
     cap.models.init_models(settings, cap.auth.User)
