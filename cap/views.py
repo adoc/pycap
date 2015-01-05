@@ -16,8 +16,6 @@ import cap.models
 import cap.validators
 
 
-from pprint import pprint
-
 # API views
 #   Locations
 @pyramid.view.view_config(route_name="api_locations_get", renderer="json",

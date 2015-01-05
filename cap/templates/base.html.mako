@@ -20,11 +20,8 @@ import datetime
                 <p class="text-muted">&copy; ${datetime.date.today().year} Seidner's Collision Centers.</p>
             </div>
         </footer>
-        <script type="text/javascript">
-            window.static_uri = ${json.dumps(request.sstatic_url("static_dir", ""))|n};
-        </script>
         <script type="text/javascript" src="${request.sstatic_url('static_dir', 'js/lib/require.min.js')}"></script>
-        <script type="text/javascript" src="${request.sstatic_url('static_dir', 'js/common.js')}"></script>
+        <script type="text/javascript" src="${request.route_url('common.js')}"></script>
     %if hasattr(next, "scripts"):
         <script type="text/javascript">
             ${next.scripts()}

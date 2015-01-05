@@ -35,15 +35,31 @@ def main(global_config, **settings):
         """
         return request.static_url(os.path.join(settings[path_key], *path))
 
+    def sstatic_path(request, path_key, *path):
+        """
+        """
+        return request.static_path(os.path.join(settings[path_key], *path))
+
     config.add_request_method(sstatic_url)
+    config.add_request_method(sstatic_path)
 
     config.add_request_method(cap.auth.get_this_user, 'this_user', reify=True)
 
     config.add_static_view(name='static', path=settings['static_dir'],
                             cache_max_age=int(settings['cache_max_age']))
 
-    # If updating routes, make sure to update the `api_get_routes` view
-    #   as well.
+    def js_view(request):
+        request.response.content_type = 'application/javascript'
+        return {}
+
+    config.add_route('config.js', '/config.js')
+    config.add_route('common.js', '/common.js')
+    config.add_view(js_view, route_name='config.js',
+                    renderer='templates/config.js.mako',
+                    http_cache=int(settings['cache_max_age']))
+    config.add_view(js_view, route_name='common.js',
+                    renderer='templates/common.js.mako',
+                    http_cache=int(settings['cache_max_age']))
 
     # HTML view routes.
     config.add_route('home', '/', factory=cap.auth.RootFactory)

@@ -47,10 +47,10 @@ define(['underscore', 'jquery', 'backbone', 'config', 'models','templates'],
                 throw "No onWatch applied to this toolbar.";
             },
             onUsers: function () {
-                window.location.href = "/users";
+                window.location.href = Config.uri.users;
             },
             onLocations: function () {
-                window.location.href = "/";
+                window.location.href = Config.uri.home;
             },
             onSave: function () {
                 throw "No onSave applied to this toolbar.";

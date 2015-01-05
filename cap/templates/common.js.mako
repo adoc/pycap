@@ -1,8 +1,9 @@
 "use strict";
 
 require.config({
-    baseUrl: window.static_uri+"js",
+    baseUrl: "${request.sstatic_url('static_dir', 'js')}",
     paths: {
+        config: "${request.route_path('config.js')}",
         jquery: 'lib/jquery.min',
         underscore: 'lib/underscore.min',
         backbone: 'lib/backbone.min',
