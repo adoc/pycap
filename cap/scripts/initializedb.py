@@ -32,9 +32,6 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
 
     cap.models.DBSession.configure(bind=engine)
-    if engine.name == 'postgresql':
-        cap.models.DBSession.execute("SET search_path TO client")
-
     cap.models.init_models(settings, cap.auth.User)
     cap.models.Base.metadata.drop_all(engine)
     cap.models.Base.metadata.create_all(engine)
