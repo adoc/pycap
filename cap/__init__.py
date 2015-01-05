@@ -25,11 +25,9 @@ def main(global_config, **settings):
                         root_factory=cap.auth.RootFactory)
 
     engine = sqlalchemy.engine_from_config(settings, 'sqlalchemy.')
-
-    if engine.name == 'postgresql':
-        cap.models.Base.metadata.schema = "client"
-
     cap.models.DBSession.configure(bind=engine)
+    if engine.name == 'postgresql':
+        cap.models.DBSession.execute("SET search_path TO client")
     cap.models.Base.metadata.bind = engine
     cap.models.init_models(settings, cap.auth.User)
     cap.validators.init_schema(settings)

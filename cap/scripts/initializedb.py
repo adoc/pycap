@@ -31,10 +31,10 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
 
-    if engine.name == 'postgresql':
-        cap.models.Base.metadata.schema = "client"
-
     cap.models.DBSession.configure(bind=engine)
+    if engine.name == 'postgresql':
+        cap.models.DBSession.execute("SET search_path TO client")
+
     cap.models.init_models(settings, cap.auth.User)
     cap.models.Base.metadata.drop_all(engine)
     cap.models.Base.metadata.create_all(engine)
