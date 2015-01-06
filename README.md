@@ -8,11 +8,11 @@ Stack
 =====
 Back
 ----
-Python
-Pyramid
-SQLAlchemy
+* Python
+* Pyramid
+* SQLAlchemy
 
 Front
 -----
-Require.js
-Backbone.js
+* Require.js
+* Backbone.js
